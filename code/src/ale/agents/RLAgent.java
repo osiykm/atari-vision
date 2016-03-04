@@ -47,7 +47,7 @@ public class RLAgent extends AbstractAgent {
 
     /** Keeping track of how many episodes we've played */
     protected int episodeNumber;
-    protected int maxNumEpisodes = 10;
+    protected int maxNumEpisodes = 1;
     
     /** Whether this is the first step of a given episode */
     protected boolean firstStep;
