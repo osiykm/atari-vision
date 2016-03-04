@@ -3,11 +3,17 @@ import sys
 from subprocess import Popen, PIPE
 
 JAR_FILE = 'dist/ALEJavaAgent.jar'
+ALE_FILE = './ale'
 
 
-def run_agent(rom='space_invaders.bin'):
-	environment = Popen(['./ale', '-game_controller', 'fifo', 'roms/'+rom], stdin=PIPE, stdout=PIPE)
-	agent = Popen(['java', '-Xmx1024M', '-jar', JAR_FILE], stdin=PIPE, stdout=PIPE)
+def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin'):
+	# start environment
+	environment = Popen([ALE_FILE, '-game_controller', 'fifo', 'roms/'+rom], stdin=PIPE, stdout=PIPE)
+
+	# start agent
+	gui_option = '' if gui else '-nogui'
+	agent = Popen(['java', '-Xmx1024M', '-jar', JAR_FILE, '-agent', agent], stdin=PIPE, stdout=PIPE)
+
 
 	cum_reward = 0
 	cum_rewards = []
@@ -32,7 +38,8 @@ def run_agent(rom='space_invaders.bin'):
 		agent.stdin.write(l)
 
 		# extract and record reward and terminal status
-		[t, r] = l.split(':')[1].split(',')
+		data = l.split(':')
+		[t, r] = data[1].split(',')
 		term = int(t)
 		reward = int(r);
 		cum_reward += reward
@@ -40,6 +47,10 @@ def run_agent(rom='space_invaders.bin'):
 			print 'Episode ' + str(episode) + ': ' + str(cum_reward)
 			cum_rewards.append(cum_reward)
 			episode += 1
+
+			# break at the end of experiment
+			if episode > max_episodes:
+				break
 			cum_reward = 0
 
 		# check for premature agent termination
@@ -61,5 +72,5 @@ def run_agent(rom='space_invaders.bin'):
 
 
 if __name__ == '__main__':
-	run_agent()
+	run_agent(agent='random')
 

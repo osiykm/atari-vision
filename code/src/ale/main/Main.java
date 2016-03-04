@@ -1,7 +1,6 @@
 package ale.main;
 
-import ale.agents.HumanAgent;
-import ale.agents.RLAgent;
+import ale.agents.*;
 
 /**
  * Created by MelRod on 3/4/16.
@@ -14,9 +13,8 @@ public class Main {
      */
     public static void main(String[] args) {
         // Parameters; default values
+        String agentName = "";
         boolean useGUI = true;
-        String namedPipesName = null;
-        boolean exportFrames = false;
 
         // Parse arguments
         int argIndex = 0;
@@ -25,23 +23,19 @@ public class Main {
 
         // Loop through the list of arguments
         while (!doneParsing) {
-            // -nogui: do not display the Java GUI
-            if (args[argIndex].equals("-nogui")) {
-                useGUI = false;
-                argIndex++;
-            }
-            // -named_pipes <basename>: use to communicate with ALE via named pipes
-            //  (instead of stdin/out)
-            else if (args[argIndex].equals("-named_pipes") && (argIndex + 1) < args.length) {
-                namedPipesName = args[argIndex+1];
+            // -agent: set the agent; default : human
+            if (args[argIndex].equals("-agent")) {
+                agentName = args[argIndex+1];
 
                 argIndex += 2;
             }
-            // -export_frames: use this to save frames as PNG images
-            else if (args[argIndex].equals("-export_frames")) {
-                exportFrames = true;
+
+            // -nogui: do not display the Java GUI
+            else if (args[argIndex].equals("-nogui")) {
+                useGUI = false;
                 argIndex++;
             }
+
             // If the argument is unrecognized, exit
             else {
                 printUsage();
@@ -53,9 +47,17 @@ public class Main {
                 doneParsing = true;
         }
 
-//        HumanAgent agent = new HumanAgent(useGUI, namedPipesName, exportFrames);
-        RLAgent agent = new RLAgent(useGUI, namedPipesName);
+        // select agent
+        AbstractAgent agent;
+        if (agentName.equals("null")) {
+            agent = new NullAgent(useGUI);
+        } else if (agentName.equals("random")) {
+            agent = new RandomAgent(useGUI);
+        } else {
+            agent = new HumanAgent(useGUI);
+        }
 
+        // run agent
         agent.run();
     }
 
@@ -64,7 +66,7 @@ public class Main {
      */
     public static void printUsage() {
         System.err.println ("Invalid argument.");
-        System.err.println ("Usage: java HumanAgent [-nogui] [-named_pipes filename] [-export_frames]\n");
+        System.err.println ("Usage: java [-agent agentName] [-nogui]\n");
         System.err.println ("Example: java HumanAgent -named_pipes /tmp/ale_fifo_");
         System.err.println ("  Will start an agent that communicates with ALE via named pipes \n"+
                 "  /tmp/ale_fifo_in and /tmp/ale_fifo_out");

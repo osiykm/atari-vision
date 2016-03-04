@@ -48,14 +48,12 @@ public abstract class AbstractAgent {
     /** Parameters */
     /** Whether to use a GUI */
     protected boolean useGUI;
-    /** If non-null, we communicate via named pipes rather than stdin/stdout */
-    protected String namedPipesBasename;
 
     /** Create a new agent that communicates with ALE via stdin/out and
      *    uses the graphical user interface.
      */
     public AbstractAgent() {
-        this(true, null);
+        this(true);
     }
 
     /** Create a new agent with the specified parameters. The user can specify
@@ -65,12 +63,9 @@ public abstract class AbstractAgent {
      *   See ALE documentation for more details on running with named pipes.
      *
      * @param useGUI If true, a GUI is used to display received screen data.
-     * @param namedPipesBasename If non-null, the base filename for the two FIFO
-     *   files used to communicate with ALE.
      */
-    public AbstractAgent(boolean useGUI, String namedPipesBasename) {
+    public AbstractAgent(boolean useGUI) {
         this.useGUI = useGUI;
-        this.namedPipesBasename = namedPipesBasename;
 
         // Create the color palette we will use to interpret ALE data
         ColorPalette palette = makePalette("NTSC");
@@ -120,10 +115,7 @@ public abstract class AbstractAgent {
 
         try {
             // Initialize the pipes; use named pipes if requested
-            if (namedPipesBasename != null)
-                io = new ALEPipes(namedPipesBasename + "out", namedPipesBasename + "in");
-            else
-                io = new ALEPipes();
+            io = new ALEPipes();
 
             // Determine which information to request from ALE
             io.setUpdateScreen(useGUI || wantsScreenData());
@@ -189,7 +181,7 @@ public abstract class AbstractAgent {
             ui.updateFrameCount();
             return;
         }
-        
+
         // Convert the screen matrix to an image
         BufferedImage img = converter.convert(currentScreen);
 
@@ -243,5 +235,7 @@ public abstract class AbstractAgent {
      * 
      * @return
      */
-    public abstract boolean wantsRLData();
+    public boolean wantsRLData() {
+        return true;
+    }
 }

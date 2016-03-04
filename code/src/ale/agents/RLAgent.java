@@ -57,10 +57,9 @@ public class RLAgent extends AbstractAgent {
     /** Creates a new RL agent.
      * 
      * @param useGUI
-     * @param pipesBasename
      */
-    public RLAgent(boolean useGUI, String pipesBasename) {
-        super(useGUI, pipesBasename);
+    public RLAgent(boolean useGUI) {
+        super(useGUI);
         featureMap = new FeatureMap();
         // Create a new learner
         learner = new SarsaLearner(featureMap.numFeatures(), numActions);
@@ -113,7 +112,7 @@ public class RLAgent extends AbstractAgent {
      * 
      * @param image
      * @param ram
-     * @param features
+     * @param rlData
      */
     public void rlStep(ScreenMatrix image, ConsoleRAM ram, RLData rlData) {
         // Obtain the feature vector for this image
@@ -166,60 +165,5 @@ public class RLAgent extends AbstractAgent {
 
     public boolean wantsScreenData() {
         return true;
-    }
-
-    /** Main class for running the RL agent.
-     * 
-     * @param args
-     */
-    public static void main(String[] args) {
-        // Parameters; default values
-        boolean useGUI = true;
-        String namedPipesName = null;
-
-        // Parse arguments
-        int argIndex = 0;
-
-        boolean doneParsing = (args.length == 0);
-
-        // Loop through the list of arguments
-        while (!doneParsing) {
-            // -nogui: do not display the Java GUI
-            if (args[argIndex].equals("-nogui")) {
-                useGUI = false;
-                argIndex++;
-            }
-            // -named_pipes <basename>: use to communicate with ALE via named pipes
-            //  (instead of stdin/out)
-            else if (args[argIndex].equals("-named_pipes") && (argIndex + 1) < args.length) {
-                namedPipesName = args[argIndex+1];
-
-                argIndex += 2;
-            }
-            // If the argument is unrecognized, exit
-            else {
-                printUsage();
-                System.exit(-1);
-            }
-
-            // Once we have parsed all arguments, stop
-            if (argIndex >= args.length)
-                doneParsing = true;
-        }
-
-        RLAgent agent = new RLAgent(useGUI, namedPipesName);
-
-        agent.run();
-    }
-
-    /** Prints out command-line usage text.
-     *
-     */
-    public static void printUsage() {
-        System.err.println ("Invalid argument.");
-        System.err.println ("Usage: java RLAgent [-nogui] [-named_pipes filename]\n");
-        System.err.println ("Example: java RLAgent -named_pipes /tmp/ale_fifo_");
-        System.err.println ("  Will start an agent that communicates with ALE via named pipes \n"+
-                "  /tmp/ale_fifo_in and /tmp/ale_fifo_out");
     }
 }

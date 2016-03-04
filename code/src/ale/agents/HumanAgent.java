@@ -29,14 +29,6 @@ import java.awt.image.BufferedImage;
  * @author Marc G. Bellemare
  */
 public class HumanAgent extends AbstractAgent {
-    /** Whether we want to export screen data to disk */
-    protected boolean exportFrames;
-    /** The base filename used for exporting screen data. The files will be name
-     *    sequentially, e.g. frame_000000.png, frame_000001.png, etc.
-     *  @see MovieGenerator
-     */
-    protected String exportFrameBasename = "frames/frame_";
-
     /** The object used to save frames to the disk */
     protected MovieGenerator movieGenerator;
 
@@ -60,15 +52,8 @@ public class HumanAgent extends AbstractAgent {
         super();
     }
 
-    public HumanAgent(boolean useGUI, String namedPipesName, boolean exportFrames) {
-        super(useGUI, namedPipesName);
-
-        this.exportFrames = exportFrames;
-
-        // If we want to export frames, we also need to create the relevant object
-        if (this.exportFrames) {
-            movieGenerator = new MovieGenerator(exportFrameBasename);
-        }
+    public HumanAgent(boolean useGUI) {
+        super(useGUI);
     }
 
     public boolean wantsScreenData() {
@@ -77,10 +62,6 @@ public class HumanAgent extends AbstractAgent {
 
     public boolean wantsRamData() {
         return false;
-    }
-
-    public boolean wantsRLData() {
-        return true;
     }
 
     public boolean shouldTerminate() {
@@ -135,12 +116,6 @@ public class HumanAgent extends AbstractAgent {
     
     @Override
     public void observe(ScreenMatrix screen, ConsoleRAM ram, RLData rlData) {
-        // Export frames if so desired
-        if (exportFrames) {
-            BufferedImage image = converter.convert(screen);
-            movieGenerator.record(image);
-        }
-
         // Display reward information via messages
         if (rlData.reward != 0)
             ui.addMessage("Reward: "+rlData.reward);
