@@ -12,8 +12,11 @@ def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin')
 	environment = Popen([ALE_FILE, '-game_controller', 'fifo', ROM_FOLDER+rom], stdin=PIPE, stdout=PIPE)
 
 	# start agent
-	gui_option = '' if gui else '-nogui'
-	agent = Popen(['java', '-Xmx1024M', '-jar', JAR_FILE, '-agent', agent, gui_option], stdin=PIPE, stdout=PIPE)
+	agent_args = ['java', '-Xmx1024M', '-jar', JAR_FILE, '-agent', agent]
+	if not gui:
+		agent_args.append('-nogui')
+
+	agent = Popen(agent_args, stdin=PIPE, stdout=PIPE)
 
 
 	cum_reward = 0

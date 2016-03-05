@@ -149,15 +149,15 @@ public abstract class AbstractAgent {
             // Pass it on to UI
             updateImage(screen);
 
-            // auto-reset if terminal
+            // Pass screen matrix to agent
             RLData rlData = io.getRLData();
+            observe(screen, io.getRAM(), rlData);
+
+            // auto-reset if terminal
             if (rlData.isTerminal) {
                 io.act(Actions.map("system_reset"));
                 continue;
             }
-
-            // Pass screen matrix to agent
-            observe(screen, io.getRAM(), rlData);
 
             // Request an action from the agent
             int action = selectAction();
