@@ -21,6 +21,7 @@ import ale.gui.AbstractUI;
 import ale.gui.AgentGUI;
 import ale.gui.NullUI;
 import ale.io.ALEPipes;
+import ale.io.Actions;
 import ale.io.ConsoleRAM;
 import ale.io.RLData;
 import ale.screen.ColorPalette;
@@ -147,8 +148,16 @@ public abstract class AbstractAgent {
             ScreenMatrix screen = io.getScreen();
             // Pass it on to UI
             updateImage(screen);
-            // ... and to the agent
-            observe(screen, io.getRAM(), io.getRLData());
+
+            // auto-reset if terminal
+            RLData rlData = io.getRLData();
+            if (rlData.isTerminal) {
+                io.act(Actions.map("system_reset"));
+                continue;
+            }
+
+            // Pass screen matrix to agent
+            observe(screen, io.getRAM(), rlData);
 
             // Request an action from the agent
             int action = selectAction();
@@ -200,7 +209,7 @@ public abstract class AbstractAgent {
     }
 
     /** Returns how long to pause for, in milliseconds, before the next time step.
-     * 
+     *
      * @return
      */
     public abstract long getPauseLength();

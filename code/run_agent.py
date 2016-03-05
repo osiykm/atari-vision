@@ -4,11 +4,12 @@ from subprocess import Popen, PIPE
 
 JAR_FILE = 'dist/ALEJavaAgent.jar'
 ALE_FILE = './ale'
+ROM_FOLDER = 'roms/'
 
 
 def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin'):
 	# start environment
-	environment = Popen([ALE_FILE, '-game_controller', 'fifo', 'roms/'+rom], stdin=PIPE, stdout=PIPE)
+	environment = Popen([ALE_FILE, '-game_controller', 'fifo', ROM_FOLDER+rom], stdin=PIPE, stdout=PIPE)
 
 	# start agent
 	gui_option = '' if gui else '-nogui'
@@ -50,6 +51,7 @@ def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin')
 
 			# break at the end of experiment
 			if episode > max_episodes:
+				print 'FINISHED'
 				break
 			cum_reward = 0
 
@@ -72,5 +74,24 @@ def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin')
 
 
 if __name__ == '__main__':
-	run_agent(agent='random')
+	import argparse
+
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--agent", default='human',
+						help="the name of the agent to use (all lowercase)")
+	parser.add_argument("--episodes", default=1, type=int,
+						help="the number of episodes to test")
+	parser.add_argument("--rom", default='space_invaders.bin',
+						help="the name of the rom file to run")
+	parser.add_argument("-n", "--nogui", action="store_true",
+						help="flag to turn off gui for faster running")
+
+
+	args = parser.parse_args()
+	agent = args.agent
+	episodes = args.episodes
+	rom = args.rom
+	gui = not args.nogui
+
+	run_agent(agent=agent, gui=gui, max_episodes=episodes, rom=rom)
 
