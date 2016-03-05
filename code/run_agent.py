@@ -13,7 +13,7 @@ def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin')
 
 	# start agent
 	gui_option = '' if gui else '-nogui'
-	agent = Popen(['java', '-Xmx1024M', '-jar', JAR_FILE, '-agent', agent], stdin=PIPE, stdout=PIPE)
+	agent = Popen(['java', '-Xmx1024M', '-jar', JAR_FILE, '-agent', agent, gui_option], stdin=PIPE, stdout=PIPE)
 
 
 	cum_reward = 0
@@ -40,7 +40,7 @@ def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin')
 
 		# extract and record reward and terminal status
 		data = l.split(':')
-		[t, r] = data[1].split(',')
+		[t, r] = data[-2].split(',')
 		term = int(t)
 		reward = int(r);
 		cum_reward += reward
