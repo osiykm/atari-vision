@@ -18,3 +18,7 @@ stage. Our agent will probably have similar difficulty.
 ### Midterm deliverables
 Table of scores versus type of agent, e.g. no movement, random movement,
 handmade policy, human.
+
+### To run
+Compile with: ant jar
+Run agent with: python run_python [-h] [--agent AGENT] [--episodes EPISODES] [--rom ROM] [-n]
