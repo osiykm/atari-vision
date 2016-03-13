@@ -53,6 +53,8 @@ public class Main {
             agent = new NullAgent(useGUI);
         } else if (agentName.equals("random")) {
             agent = new RandomAgent(useGUI);
+        } else if (agentName.equals("sarsa")) {
+            agent = new SarsaAgent(useGUI);
         } else {
             agent = new HumanAgent(useGUI);
         }

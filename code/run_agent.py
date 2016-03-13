@@ -2,7 +2,7 @@ import os
 import sys
 from subprocess import Popen, PIPE
 
-JAR_FILE = 'dist/ALEJavaAgent.jar'
+JAR_FILE = 'dist/atari_agent.jar'
 ALE_FILE = './ale'
 ROM_FOLDER = 'roms/'
 
