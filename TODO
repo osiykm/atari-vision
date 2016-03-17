@@ -1,0 +1,2 @@
+Load OpenCV properly without using butchered paths.
+    See Main.java, in the init method.
