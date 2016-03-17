@@ -1,6 +1,7 @@
 package ale.main;
 
 import ale.agents.*;
+import org.opencv.core.Core;
 
 /**
  * Created by MelRod on 3/4/16.
@@ -12,6 +13,9 @@ public class Main {
      * @param args
      */
     public static void main(String[] args) {
+        // Initialize any needed resources
+        init();
+
         // Parameters; default values
         String agentName = "";
         boolean useGUI = true;
@@ -72,5 +76,12 @@ public class Main {
         System.err.println ("Example: java HumanAgent -named_pipes /tmp/ale_fifo_");
         System.err.println ("  Will start an agent that communicates with ALE via named pipes \n"+
                 "  /tmp/ale_fifo_in and /tmp/ale_fifo_out");
+    }
+
+    /**
+     * Intiializes needed resources.
+     */
+    public static void init() {
+        System.load("/usr/local/Cellar/opencv3/3.1.0_1/share/OpenCV/java/libopencv_java310.so");
     }
 }

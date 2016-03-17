@@ -17,11 +17,17 @@
  */
 package ale.agents;
 
+import ale.cv.Sprite;
 import ale.io.ConsoleRAM;
 import ale.io.RLData;
 import ale.movie.MovieGenerator;
 import ale.screen.ScreenMatrix;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Map;
+
+import ale.cv.SpriteFinder;
+import org.opencv.core.Point;
 
 /** An 'agent' meant to be controlled by a human. Used to play the game and
  *   demonstrate the GUI.
@@ -116,6 +122,9 @@ public class HumanAgent extends AbstractAgent {
     
     @Override
     public void observe(ScreenMatrix screen, ConsoleRAM ram, RLData rlData) {
+        // Find sprites
+        Map<Sprite, ArrayList<Point>> sprites = this.spriteFinder.findSprites(screen);
+
         // Display reward information via messages
         if (rlData.reward != 0)
             ui.addMessage("Reward: "+rlData.reward);

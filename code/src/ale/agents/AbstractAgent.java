@@ -17,6 +17,7 @@
  */
 package ale.agents;
 
+import ale.cv.SpriteFinder;
 import ale.gui.AbstractUI;
 import ale.gui.AgentGUI;
 import ale.gui.NullUI;
@@ -38,6 +39,9 @@ import java.io.IOException;
  * @author Marc G. Bellemare
  */
 public abstract class AbstractAgent {
+    /** The object used to detect sprites. */
+    protected SpriteFinder spriteFinder;
+
     /** Used to convert ALE screen data to GUI images */
     protected final ScreenConverter converter;
 
@@ -73,6 +77,9 @@ public abstract class AbstractAgent {
 
         // Create an object to convert indexed images to Java images
         converter = new ScreenConverter(palette);
+
+        // Create new SpriteFinder
+        spriteFinder = new SpriteFinder();
         
         init();
     }
