@@ -3,24 +3,29 @@ package ale.cv;
 import ale.screen.NTSCPalette;
 import ale.screen.ScreenConverter;
 import ale.screen.ScreenMatrix;
-import javafx.stage.Screen;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Core;
 import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.imgcodecs.Imgcodecs;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
+
+import java.util.*;
 
 public class SpriteFinder {
+    // List of active sprites to search for
     private List<Sprite> sprites;
+
+    // Number of missing frames per sprite
+    private Map<Sprite, Integer> missingFrames;
+    private int maxFrames = 3;
+
+    // Converter for ScreenMatrix to OpenCV Mat
     private ScreenConverter screenConverter;
 
     // Template detection thresholding
-    private double threshold = 0.95;
+    private double threshold = 0.05;
+
+    // Last frame with sucessful matches
+    private int lastFrame = 0;
 
     public SpriteFinder() {
         // Load sprites
@@ -31,12 +36,19 @@ public class SpriteFinder {
         Sprite fifth = new Sprite("../sprites/5_left.png", "../sprites/5_right.png", 5);
         Sprite top = new Sprite("../sprites/6_left.png", "../sprites/6_right.png", 5);
         this.sprites = new ArrayList<>();
+        this.missingFrames = new HashMap<>();
         sprites.add(bottom);
+        missingFrames.put(bottom, 0);
         sprites.add(second);
+        missingFrames.put(second, 0);
         sprites.add(third);
+        missingFrames.put(third, 0);
         sprites.add(fourth);
+        missingFrames.put(fourth, 0);
         sprites.add(fifth);
+        missingFrames.put(fifth, 0);
         sprites.add(top);
+        missingFrames.put(top, 0);
         screenConverter = new ScreenConverter(new NTSCPalette());
     }
 
@@ -46,11 +58,13 @@ public class SpriteFinder {
 
         // Convert screen to a OpenCV matrix
         Mat screenMat = screenConverter.convertMat(screen);
+        Imgproc.cvtColor(screenMat, screenMat, Imgproc.COLOR_BGR2GRAY);
 
-
-        for (Sprite sprite : this.sprites) {
+        Iterator<Sprite> iterator = sprites.iterator();
+        while (iterator.hasNext()) {
+            Sprite sprite = iterator.next();
             // Grab first frame
-            Mat frame = sprite.getFrame1();
+            Mat frame = sprite.getFrame(lastFrame);
 
             // Create image with match
             int resultRows = screenMat.rows() - frame.rows() + 1;
@@ -58,19 +72,30 @@ public class SpriteFinder {
             Mat result = new Mat(resultRows, resultCols, CvType.CV_32FC1);
 
             // Run comparison on first frame
-            Imgproc.matchTemplate(screenMat, frame, result, Imgproc.TM_CCOEFF_NORMED);
+            Imgproc.matchTemplate(screenMat, frame, result, Imgproc.TM_SQDIFF_NORMED);
 
             // Check for matches
             ArrayList<Point> matches = checkMatches(result);
 
-            // If no matches, possibly check second frame
-            if (sprite.numFrames() == 2 && matches.isEmpty()) {
-                frame = sprite.getFrame2();
-                Imgproc.matchTemplate(screenMat, frame, result, Imgproc.TM_CCOEFF_NORMED);
+            // If no matches, possibly check next frame
+            if (sprite.numFrames() >= lastFrame && matches.isEmpty()) {
+                this.lastFrame = 1 - this.lastFrame;
+                frame = sprite.getFrame(lastFrame);
+                Imgproc.matchTemplate(screenMat, frame, result, Imgproc.TM_SQDIFF_NORMED);
                 matches = checkMatches(result);
             }
 
-            spriteMap.put(sprite, matches);
+            // Check for any matches
+            if (!matches.isEmpty()) {
+                spriteMap.put(sprite, matches);
+                missingFrames.put(sprite, 0);
+            } else {
+                if (missingFrames.get(sprite) == this.maxFrames) {
+                    iterator.remove();
+                } else {
+                    missingFrames.put(sprite, missingFrames.get(sprite) + 1);
+                }
+            }
         }
 
         return spriteMap;
@@ -81,12 +106,18 @@ public class SpriteFinder {
 
         for (int x = 0; x < result.rows(); x++) {
             for (int y = 0; y < result.cols(); y++) {
-                if (result.get(x, y)[0] > this.threshold) {
+                if (result.get(x, y)[0] < this.threshold) {
+                    /*
+                     * NOTE:
+                     * These coordinates may be dumb, i.e. not correspond to actual screen coordinates
+                     * because of how the result image looks.
+                     *
+                     * That said, they *should* work for basic learning.
+                     */
                     matches.add(new Point(x, y));
                 }
             }
         }
-
         return matches;
     }
 }

@@ -1,7 +1,12 @@
 package ale.cv;
 
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A class that encapsulates a sprite.
@@ -9,8 +14,7 @@ import org.opencv.imgcodecs.Imgcodecs;
  * its point value.
  */
 public class Sprite {
-    private Mat frame1;
-    private Mat frame2;
+    private List<Mat> frames;
     private int value;
 
     /**
@@ -19,7 +23,10 @@ public class Sprite {
      * @param value The value of the sprite.
      */
     public Sprite(String path, int value) {
-        this.frame1 = Imgcodecs.imread(path);
+        this.frames = new ArrayList<>();
+        Mat frame = Imgcodecs.imread(path);
+        Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2GRAY);
+        frames.add(frame);
         this.value = value;
     }
 
@@ -31,19 +38,17 @@ public class Sprite {
      */
     public Sprite(String path1, String path2, int value) {
         this(path1, value);
-        this.frame2 = Imgcodecs.imread(path2);
+        Mat frame = Imgcodecs.imread(path2);
+        Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2GRAY);
+        this.frames.add(frame);
+    }
+
+    public Mat getFrame(int idx) {
+        return this.frames.get(idx);
     }
 
     public int numFrames() {
-        return this.frame2 == null ? 1 : 2;
-    }
-
-    public Mat getFrame1() {
-        return frame1;
-    }
-
-    public Mat getFrame2() {
-        return frame2;
+        return this.frames.size();
     }
 
     public int getValue() {
