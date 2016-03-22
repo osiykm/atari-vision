@@ -1,6 +1,6 @@
 package ale.burlap.propositionalfunction;
 
-import ale.burlap.DomainConstants;
+import ale.burlap.ALEDomainConstants;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.PropositionalFunction;
 import burlap.oomdp.core.objects.ObjectInstance;
@@ -25,8 +25,8 @@ public class PFVertAlign extends PropositionalFunction {
         ObjectInstance objectA = s.getObject(params[0]);
         ObjectInstance objectB = s.getObject(params[1]);
 
-        if (width <= Math.abs(objectA.getIntValForAttribute(DomainConstants.XATTNAME)
-                        - objectB.getIntValForAttribute(DomainConstants.XATTNAME))) {
+        if (width <= Math.abs(objectA.getIntValForAttribute(ALEDomainConstants.XATTNAME)
+                        - objectB.getIntValForAttribute(ALEDomainConstants.XATTNAME))) {
             return true;
         } else {
             return false;

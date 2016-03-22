@@ -9,28 +9,28 @@ import org.opencv.imgcodecs.Imgcodecs;
  * its point value.
  */
 public class Sprite {
+    private String id;
     private Mat frame1;
     private Mat frame2;
-    private int value;
 
     /**
      * Loads a sprite from a path and a point value.
+     * @param id The object id of the sprite
      * @param path The only frame for this sprite.
-     * @param value The value of the sprite.
      */
-    public Sprite(String path, int value) {
+    public Sprite(String id, String path) {
+        this.id = id;
         this.frame1 = Imgcodecs.imread(path);
-        this.value = value;
     }
 
     /**
      * Loads a sprite from two paths and a point value
+     * @param id The object id of the sprite
      * @param path1 The first frame of the sprite's animation.
      * @param path2 The second frame of the sprite's animation.
-     * @param value The value of the sprite
      */
-    public Sprite(String path1, String path2, int value) {
-        this(path1, value);
+    public Sprite(String id, String path1, String path2) {
+        this(id, path1);
         this.frame2 = Imgcodecs.imread(path2);
     }
 
@@ -46,7 +46,7 @@ public class Sprite {
         return frame2;
     }
 
-    public int getValue() {
-        return value;
+    public String getId() {
+        return id;
     }
 }

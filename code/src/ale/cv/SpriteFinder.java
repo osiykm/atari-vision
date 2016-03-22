@@ -1,15 +1,14 @@
 package ale.cv;
 
+import ale.burlap.ALEDomainConstants;
 import ale.screen.NTSCPalette;
 import ale.screen.ScreenConverter;
 import ale.screen.ScreenMatrix;
-import javafx.stage.Screen;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Core;
 import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.imgcodecs.Imgcodecs;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -20,23 +19,44 @@ public class SpriteFinder {
     private ScreenConverter screenConverter;
 
     // Template detection thresholding
-    private double threshold = 0.95;
+    private double threshold = 0.85;
+
+    // shared SpriteFinder
+    private static SpriteFinder spriteFinder;
+    public static SpriteFinder getSpriteFinder() {
+        if (spriteFinder == null) {
+            spriteFinder = new SpriteFinder();
+        }
+        return spriteFinder;
+    }
 
     public SpriteFinder() {
         // Load sprites
-        Sprite bottom = new Sprite("../sprites/1_left.png", "../sprites/1_right.png", 5);
-        Sprite second = new Sprite("../sprites/2_left.png", "../sprites/2_right.png", 5);
-        Sprite third = new Sprite("../sprites/3_left.png", "../sprites/3_right.png", 5);
-        Sprite fourth = new Sprite("../sprites/4_left.png", "../sprites/4_right.png", 5);
-        Sprite fifth = new Sprite("../sprites/5_left.png", "../sprites/5_right.png", 5);
-        Sprite top = new Sprite("../sprites/6_left.png", "../sprites/6_right.png", 5);
         this.sprites = new ArrayList<>();
+
+        // player
+        Sprite player = new Sprite(ALEDomainConstants.CLASSAGENT, "../sprites/player.jpg");
+        sprites.add(player);
+
+        // aliens
+        Sprite bottom = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/1_left.jpg", "../sprites/1_right.jpg");
+        Sprite second = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/2_left.jpg", "../sprites/2_right.jpg");
+        Sprite third = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/3_left.jpg", "../sprites/3_right.jpg");
+        Sprite fourth = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/4_left.jpg", "../sprites/4_right.jpg");
+        Sprite fifth = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/5_left.jpg", "../sprites/5_right.jpg");
+        Sprite top = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/6_left.jpg", "../sprites/6_right.jpg");
         sprites.add(bottom);
         sprites.add(second);
         sprites.add(third);
         sprites.add(fourth);
         sprites.add(fifth);
         sprites.add(top);
+
+        // bomb
+//        Sprite bomb = new Sprite(ALEDomainConstants.CLASSBOMB, "../sprites/bomb.jpg");
+//        sprites.add(bomb);
+
+
         screenConverter = new ScreenConverter(new NTSCPalette());
     }
 
