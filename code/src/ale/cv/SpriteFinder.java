@@ -35,16 +35,16 @@ public class SpriteFinder {
         this.sprites = new ArrayList<>();
 
         // player
-        Sprite player = new Sprite(ALEDomainConstants.CLASSAGENT, "../sprites/player.jpg");
+        Sprite player = new Sprite(ALEDomainConstants.CLASSAGENT, "../sprites/player.png");
         sprites.add(player);
 
         // aliens
-        Sprite bottom = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/1_left.jpg", "../sprites/1_right.jpg");
-        Sprite second = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/2_left.jpg", "../sprites/2_right.jpg");
-        Sprite third = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/3_left.jpg", "../sprites/3_right.jpg");
-        Sprite fourth = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/4_left.jpg", "../sprites/4_right.jpg");
-        Sprite fifth = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/5_left.jpg", "../sprites/5_right.jpg");
-        Sprite top = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/6_left.jpg", "../sprites/6_right.jpg");
+        Sprite bottom = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/1_left.png", "../sprites/1_right.png");
+        Sprite second = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/2_left.png", "../sprites/2_right.png");
+        Sprite third = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/3_left.png", "../sprites/3_right.png");
+        Sprite fourth = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/4_left.png", "../sprites/4_right.png");
+        Sprite fifth = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/5_left.png", "../sprites/5_right.png");
+        Sprite top = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/6_left.png", "../sprites/6_right.png");
         sprites.add(bottom);
         sprites.add(second);
         sprites.add(third);
@@ -53,7 +53,7 @@ public class SpriteFinder {
         sprites.add(top);
 
         // bomb
-//        Sprite bomb = new Sprite(ALEDomainConstants.CLASSBOMB, "../sprites/bomb.jpg");
+//        Sprite bomb = new Sprite(ALEDomainConstants.CLASSBOMB, "../sprites/bomb.png");
 //        sprites.add(bomb);
 
 
