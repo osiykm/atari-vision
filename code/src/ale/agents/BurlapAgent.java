@@ -37,6 +37,8 @@ public class BurlapAgent {
 
         for (int e = 1 ; e <= episodes ; e++) {
             runEpisode();
+
+            env.resetEnvironment();
         }
 
         // Clean up the environment

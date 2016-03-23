@@ -25,6 +25,7 @@ public class Main {
 
         // Parameters; default values
         String agentName = "";
+        int episodes = 1;
         boolean useGUI = true;
 
         // Parse arguments
@@ -37,6 +38,13 @@ public class Main {
             // -agent: set the agent; default : human
             if (args[argIndex].equals("-agent")) {
                 agentName = args[argIndex+1];
+
+                argIndex += 2;
+            }
+
+            // -episodes: set the episodes; default : 1
+            else if (args[argIndex].equals("-episodes")) {
+                episodes = Integer.valueOf(args[argIndex+1]);
 
                 argIndex += 2;
             }
@@ -73,7 +81,10 @@ public class Main {
                 Domain domain = domGen.generateDomain();
                 ALEState initialState = new OOALEState();
 
-                Visualizer vis = domGen.getVisualizer();
+                Visualizer vis = null;
+                if (useGUI) {
+                    vis = domGen.getVisualizer();
+                }
 
                 agent = new BurlapAgent(new NaiveSIPolicy(domain), domain, initialState, vis, useGUI);
             } else {
@@ -88,7 +99,7 @@ public class Main {
                 agent = new BurlapAgent(new RandomPolicy(domain), domain, initialState, null, useGUI);
             }
 
-            agent.run(1);
+            agent.run(episodes);
         }
     }
 
@@ -139,7 +150,7 @@ public class Main {
      */
     public static void printUsage() {
         System.err.println ("Invalid argument.");
-        System.err.println ("Usage: java [-agent agentName] [-nogui]\n");
+        System.err.println ("Usage: java [-agent agentName] [-episodes episodes] [-nogui] \n");
         System.err.println ("Example: java HumanAgent -named_pipes /tmp/ale_fifo_");
         System.err.println ("  Will start an agent that communicates with ALE via named pipes \n"+
                 "  /tmp/ale_fifo_in and /tmp/ale_fifo_out");
