@@ -34,7 +34,6 @@ def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin')
 	while(1):
 		# check for premature environment termination
 		if environment.poll() != None:
-			agent.kill()
 			break
 
 		# read from environment, send to agent
@@ -67,6 +66,10 @@ def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin')
 
 		# send to environment
 		environment.stdin.write(a)
+
+	# Clean-up subprocesses
+	environment.kill()
+	agent.kill()
 
 	return cum_rewards
 
