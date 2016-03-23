@@ -21,7 +21,7 @@ import java.awt.geom.Ellipse2D;
  */
 public class SIDomainGenerator extends ALEDomainGenerator {
 
-    public static int objectWidth = 10;
+    public static int objectWidth = 8;
 
     SpriteFinder spriteFinder;
 
@@ -111,8 +111,8 @@ public class SIDomainGenerator extends ALEDomainGenerator {
             float pixelWidth = (cWidth / fWidth);
             float pixelHeight = (cHeight / fHeight);
 
-            int ax = ob.getIntValForAttribute(ALEDomainConstants.XATTNAME);
-            int ay = ob.getIntValForAttribute(ALEDomainConstants.YATTNAME);
+            float ax = ob.getIntValForAttribute(ALEDomainConstants.XATTNAME);
+            float ay = fHeight - ob.getIntValForAttribute(ALEDomainConstants.YATTNAME);
 
             //left coordinate of cell on our canvas
             float rx = ax*pixelWidth;

@@ -82,13 +82,13 @@ public class SpriteFinder {
             Imgproc.matchTemplate(screenMat, frame, result, Imgproc.TM_CCOEFF_NORMED);
 
             // Check for matches
-            ArrayList<Point> matches = checkMatches(result);
+            ArrayList<Point> matches = checkMatches(result, sprite.width, sprite.height);
 
             // If no matches, possibly check second frame
             if (sprite.numFrames() == 2 && matches.isEmpty()) {
                 frame = sprite.getFrame2();
                 Imgproc.matchTemplate(screenMat, frame, result, Imgproc.TM_CCOEFF_NORMED);
-                matches = checkMatches(result);
+                matches = checkMatches(result, sprite.width, sprite.height);
             }
 
             spriteMap.put(sprite, matches);
@@ -97,13 +97,16 @@ public class SpriteFinder {
         return spriteMap;
     }
 
-    private ArrayList<Point> checkMatches(Mat result) {
+    private ArrayList<Point> checkMatches(Mat result, int width, int height) {
+        int halfWidth = width/2;
+        int halfHeight = height/2;
         ArrayList<Point> matches = new ArrayList<>();
 
         for (int r = 0; r < result.rows(); r++) {
             for (int c = 0; c < result.cols(); c++) {
                 if (result.get(r, c)[0] > this.threshold) {
-                    matches.add(new Point(c, r));
+                    // set point as center of sprite
+                    matches.add(new Point(c + halfWidth, r + halfHeight));
                 }
             }
         }

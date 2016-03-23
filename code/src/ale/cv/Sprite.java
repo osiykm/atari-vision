@@ -12,6 +12,8 @@ public class Sprite {
     private String id;
     private Mat frame1;
     private Mat frame2;
+    public int width;
+    public int height;
 
     /**
      * Loads a sprite from a path and a point value.
@@ -21,6 +23,8 @@ public class Sprite {
     public Sprite(String id, String path) {
         this.id = id;
         this.frame1 = Imgcodecs.imread(path);
+        this.width = this.frame1.width();
+        this.height = this.frame1.height();
     }
 
     /**

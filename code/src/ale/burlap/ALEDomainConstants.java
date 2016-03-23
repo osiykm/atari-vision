@@ -39,6 +39,6 @@ public class ALEDomainConstants {
 
 
     // Constants
-    public static final int ALEScreenWidth = 210;//160;
-    public static final int ALEScreenHeight = 160;//210;
+    public static final int ALEScreenWidth = 160;
+    public static final int ALEScreenHeight = 210;
 }

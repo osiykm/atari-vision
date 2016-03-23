@@ -25,7 +25,7 @@ public class PFVertAlign extends PropositionalFunction {
         ObjectInstance objectA = s.getObject(params[0]);
         ObjectInstance objectB = s.getObject(params[1]);
 
-        if (width <= Math.abs(objectA.getIntValForAttribute(ALEDomainConstants.XATTNAME)
+        if (width/2 >= Math.abs(objectA.getIntValForAttribute(ALEDomainConstants.XATTNAME)
                         - objectB.getIntValForAttribute(ALEDomainConstants.XATTNAME))) {
             return true;
         } else {

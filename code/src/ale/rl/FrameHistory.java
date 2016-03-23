@@ -18,6 +18,7 @@
 package ale.rl;
 
 import ale.screen.ScreenMatrix;
+
 import java.util.LinkedList;
 
 /** A time-ordered list of frames.

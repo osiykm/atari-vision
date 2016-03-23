@@ -20,7 +20,7 @@ package ale.screen;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
-import java.awt.Color;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /** Converts a ScreenMatrix to a BufferedImage, using a ColorMap.

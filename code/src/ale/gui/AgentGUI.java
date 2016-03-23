@@ -21,8 +21,8 @@ import ale.screen.ColorPalette;
 import ale.screen.ScreenConverter;
 import ale.screen.ScreenMatrix;
 
-import java.awt.image.BufferedImage;
 import javax.swing.*;
+import java.awt.image.BufferedImage;
 
 /** GUI for the Java ALE agent.
  * 

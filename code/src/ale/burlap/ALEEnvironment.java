@@ -116,6 +116,12 @@ public class ALEEnvironment implements Environment {
         updateState();
     }
 
+    public void die() {
+        if (useGUI) {
+            ui.die();
+        }
+    }
+
     /** Initialize the I/O object.
      *
      */

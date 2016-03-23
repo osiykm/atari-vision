@@ -17,11 +17,11 @@
  */
 package ale.movie;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
-import javax.imageio.ImageIO;
 
 /** A class for exporting screen images to PNG files.
  *
