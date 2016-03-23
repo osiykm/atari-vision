@@ -7,12 +7,13 @@ import ale.screen.ScreenMatrix;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SpriteFinder {
     private List<Sprite> sprites;
@@ -99,10 +100,10 @@ public class SpriteFinder {
     private ArrayList<Point> checkMatches(Mat result) {
         ArrayList<Point> matches = new ArrayList<>();
 
-        for (int x = 0; x < result.rows(); x++) {
-            for (int y = 0; y < result.cols(); y++) {
-                if (result.get(x, y)[0] > this.threshold) {
-                    matches.add(new Point(x, y));
+        for (int r = 0; r < result.rows(); r++) {
+            for (int c = 0; c < result.cols(); c++) {
+                if (result.get(r, c)[0] > this.threshold) {
+                    matches.add(new Point(c, r));
                 }
             }
         }
