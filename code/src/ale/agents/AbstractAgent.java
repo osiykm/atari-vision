@@ -17,20 +17,13 @@
  */
 package ale.agents;
 
-import ale.cv.SpriteFinder;
-import ale.gui.AbstractUI;
 import ale.gui.AgentGUI;
-import ale.gui.NullUI;
 import ale.io.ALEPipes;
 import ale.io.Actions;
 import ale.io.ConsoleRAM;
 import ale.io.RLData;
-import ale.screen.ColorPalette;
-import ale.screen.NTSCPalette;
-import ale.screen.SECAMPalette;
-import ale.screen.ScreenConverter;
 import ale.screen.ScreenMatrix;
-import java.awt.image.BufferedImage;
+
 import java.io.IOException;
 
 /** An abstract agent class. New agents can be created by extending this class
@@ -39,14 +32,9 @@ import java.io.IOException;
  * @author Marc G. Bellemare
  */
 public abstract class AbstractAgent {
-    /** The object used to detect sprites. */
-    protected SpriteFinder spriteFinder;
-
-    /** Used to convert ALE screen data to GUI images */
-    protected final ScreenConverter converter;
 
     /** The UI used for displaying images and receiving actions */
-    protected AbstractUI ui;
+    protected AgentGUI ui;
     /** The I/O object used to communicate with ALE */
     protected ALEPipes io;
 
@@ -71,32 +59,8 @@ public abstract class AbstractAgent {
      */
     public AbstractAgent(boolean useGUI) {
         this.useGUI = useGUI;
-
-        // Create the color palette we will use to interpret ALE data
-        ColorPalette palette = makePalette("NTSC");
-
-        // Create an object to convert indexed images to Java images
-        converter = new ScreenConverter(palette);
-
-        // Create new SpriteFinder
-        spriteFinder = new SpriteFinder();
         
         init();
-    }
-
-    /** Create a color palette used to display the screen. The currently available
-     *   choices are NTSC (128 colors) and SECAM (8 colors).
-     * 
-     * @param paletteName The name of the palette (NTSC or SECAM).
-     * @return
-     */
-    protected final ColorPalette makePalette(String paletteName) {
-        if (paletteName.equals("NTSC"))
-            return new NTSCPalette();
-        else if (paletteName.equals("SECAM"))
-            return new SECAMPalette();
-        else
-            throw new IllegalArgumentException("Invalid palette: "+paletteName);
     }
 
     /** Initialize relevant bits of the agent
@@ -106,9 +70,6 @@ public abstract class AbstractAgent {
         if (useGUI) {
             // Create the GUI
             ui = new AgentGUI();
-        }
-        else {
-            ui = new NullUI();
         }
 
         // Create the relevant I/O objects
@@ -154,7 +115,7 @@ public abstract class AbstractAgent {
             // Obtain the screen matrix
             ScreenMatrix screen = io.getScreen();
             // Pass it on to UI
-            updateImage(screen);
+            ui.updateImage(screen);
 
             // Pass screen matrix to agent
             RLData rlData = io.getRLData();
@@ -184,27 +145,6 @@ public abstract class AbstractAgent {
 
         // Clean up the GUI
         ui.die();
-    }
-
-    /** Internal method to update the image displayed in the GUI.
-     * 
-     * @param currentScreen
-     */
-    protected void updateImage(ScreenMatrix currentScreen) {
-        // We know that the NullUI does not want image data, so don't spend time
-        //  converting the image
-        if (ui instanceof NullUI) {
-            ui.updateFrameCount();
-            return;
-        }
-
-        // Convert the screen matrix to an image
-        BufferedImage img = converter.convert(currentScreen);
-
-        // Provide the new image to the UI
-        ui.updateFrameCount();
-        ui.setImage(img);
-        ui.refresh();
     }
 
     protected void pause(long waitTime) {

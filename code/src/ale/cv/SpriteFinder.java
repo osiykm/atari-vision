@@ -1,54 +1,63 @@
 package ale.cv;
 
+import ale.burlap.ALEDomainConstants;
 import ale.screen.NTSCPalette;
 import ale.screen.ScreenConverter;
 import ale.screen.ScreenMatrix;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SpriteFinder {
-    // List of active sprites to search for
     private List<Sprite> sprites;
-
-    // Number of missing frames per sprite
-    private Map<Sprite, Integer> missingFrames;
-    private int maxFrames = 3;
-
-    // Converter for ScreenMatrix to OpenCV Mat
     private ScreenConverter screenConverter;
 
     // Template detection thresholding
-    private double threshold = 0.05;
+    private double threshold = 0.85;
 
-    // Last frame with sucessful matches
-    private int lastFrame = 0;
+    // shared SpriteFinder
+    private static SpriteFinder spriteFinder;
+    public static SpriteFinder getSpriteFinder() {
+        if (spriteFinder == null) {
+            spriteFinder = new SpriteFinder();
+        }
+        return spriteFinder;
+    }
 
     public SpriteFinder() {
         // Load sprites
-        Sprite bottom = new Sprite("../sprites/1_left.png", "../sprites/1_right.png", 5);
-        Sprite second = new Sprite("../sprites/2_left.png", "../sprites/2_right.png", 5);
-        Sprite third = new Sprite("../sprites/3_left.png", "../sprites/3_right.png", 5);
-        Sprite fourth = new Sprite("../sprites/4_left.png", "../sprites/4_right.png", 5);
-        Sprite fifth = new Sprite("../sprites/5_left.png", "../sprites/5_right.png", 5);
-        Sprite top = new Sprite("../sprites/6_left.png", "../sprites/6_right.png", 5);
         this.sprites = new ArrayList<>();
-        this.missingFrames = new HashMap<>();
+
+        // player
+        Sprite player = new Sprite(ALEDomainConstants.CLASSAGENT, "../sprites/player.png");
+        sprites.add(player);
+
+        // aliens
+        Sprite bottom = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/1_left.png", "../sprites/1_right.png");
+        Sprite second = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/2_left.png", "../sprites/2_right.png");
+        Sprite third = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/3_left.png", "../sprites/3_right.png");
+        Sprite fourth = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/4_left.png", "../sprites/4_right.png");
+        Sprite fifth = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/5_left.png", "../sprites/5_right.png");
+        Sprite top = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/6_left.png", "../sprites/6_right.png");
         sprites.add(bottom);
-        missingFrames.put(bottom, 0);
         sprites.add(second);
-        missingFrames.put(second, 0);
         sprites.add(third);
-        missingFrames.put(third, 0);
         sprites.add(fourth);
-        missingFrames.put(fourth, 0);
         sprites.add(fifth);
-        missingFrames.put(fifth, 0);
         sprites.add(top);
-        missingFrames.put(top, 0);
+
+        // bomb
+//        Sprite bomb = new Sprite(ALEDomainConstants.CLASSBOMB, "../sprites/bomb.png");
+//        sprites.add(bomb);
+
+
         screenConverter = new ScreenConverter(new NTSCPalette());
     }
 
@@ -58,13 +67,11 @@ public class SpriteFinder {
 
         // Convert screen to a OpenCV matrix
         Mat screenMat = screenConverter.convertMat(screen);
-        Imgproc.cvtColor(screenMat, screenMat, Imgproc.COLOR_BGR2GRAY);
 
-        Iterator<Sprite> iterator = sprites.iterator();
-        while (iterator.hasNext()) {
-            Sprite sprite = iterator.next();
+
+        for (Sprite sprite : this.sprites) {
             // Grab first frame
-            Mat frame = sprite.getFrame(lastFrame);
+            Mat frame = sprite.getFrame1();
 
             // Create image with match
             int resultRows = screenMat.rows() - frame.rows() + 1;
@@ -72,52 +79,38 @@ public class SpriteFinder {
             Mat result = new Mat(resultRows, resultCols, CvType.CV_32FC1);
 
             // Run comparison on first frame
-            Imgproc.matchTemplate(screenMat, frame, result, Imgproc.TM_SQDIFF_NORMED);
+            Imgproc.matchTemplate(screenMat, frame, result, Imgproc.TM_CCOEFF_NORMED);
 
             // Check for matches
-            ArrayList<Point> matches = checkMatches(result);
+            ArrayList<Point> matches = checkMatches(result, sprite.width, sprite.height);
 
-            // If no matches, possibly check next frame
-            if (sprite.numFrames() >= lastFrame && matches.isEmpty()) {
-                this.lastFrame = 1 - this.lastFrame;
-                frame = sprite.getFrame(lastFrame);
-                Imgproc.matchTemplate(screenMat, frame, result, Imgproc.TM_SQDIFF_NORMED);
-                matches = checkMatches(result);
+            // If no matches, possibly check second frame
+            if (sprite.numFrames() == 2 && matches.isEmpty()) {
+                frame = sprite.getFrame2();
+                Imgproc.matchTemplate(screenMat, frame, result, Imgproc.TM_CCOEFF_NORMED);
+                matches = checkMatches(result, sprite.width, sprite.height);
             }
 
-            // Check for any matches
-            if (!matches.isEmpty()) {
-                spriteMap.put(sprite, matches);
-                missingFrames.put(sprite, 0);
-            } else {
-                if (missingFrames.get(sprite) == this.maxFrames) {
-                    iterator.remove();
-                } else {
-                    missingFrames.put(sprite, missingFrames.get(sprite) + 1);
-                }
-            }
+            spriteMap.put(sprite, matches);
         }
 
         return spriteMap;
     }
 
-    private ArrayList<Point> checkMatches(Mat result) {
+    private ArrayList<Point> checkMatches(Mat result, int width, int height) {
+        int halfWidth = width/2;
+        int halfHeight = height/2;
         ArrayList<Point> matches = new ArrayList<>();
 
-        for (int x = 0; x < result.rows(); x++) {
-            for (int y = 0; y < result.cols(); y++) {
-                if (result.get(x, y)[0] < this.threshold) {
-                    /*
-                     * NOTE:
-                     * These coordinates may be dumb, i.e. not correspond to actual screen coordinates
-                     * because of how the result image looks.
-                     *
-                     * That said, they *should* work for basic learning.
-                     */
-                    matches.add(new Point(x, y));
+        for (int r = 0; r < result.rows(); r++) {
+            for (int c = 0; c < result.cols(); c++) {
+                if (result.get(r, c)[0] > this.threshold) {
+                    // set point as center of sprite
+                    matches.add(new Point(c + halfWidth, r + halfHeight));
                 }
             }
         }
+
         return matches;
     }
 }

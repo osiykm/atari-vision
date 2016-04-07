@@ -1,12 +1,7 @@
 package ale.cv;
 
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A class that encapsulates a sprite.
@@ -14,44 +9,48 @@ import java.util.List;
  * its point value.
  */
 public class Sprite {
-    private List<Mat> frames;
-    private int value;
+    private String id;
+    private Mat frame1;
+    private Mat frame2;
+    public int width;
+    public int height;
 
     /**
      * Loads a sprite from a path and a point value.
+     * @param id The object id of the sprite
      * @param path The only frame for this sprite.
-     * @param value The value of the sprite.
      */
-    public Sprite(String path, int value) {
-        this.frames = new ArrayList<>();
-        Mat frame = Imgcodecs.imread(path);
-        Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2GRAY);
-        frames.add(frame);
-        this.value = value;
+    public Sprite(String id, String path) {
+        this.id = id;
+        this.frame1 = Imgcodecs.imread(path);
+        this.width = this.frame1.width();
+        this.height = this.frame1.height();
     }
 
     /**
      * Loads a sprite from two paths and a point value
+     * @param id The object id of the sprite
      * @param path1 The first frame of the sprite's animation.
      * @param path2 The second frame of the sprite's animation.
-     * @param value The value of the sprite
      */
-    public Sprite(String path1, String path2, int value) {
-        this(path1, value);
-        Mat frame = Imgcodecs.imread(path2);
-        Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2GRAY);
-        this.frames.add(frame);
-    }
-
-    public Mat getFrame(int idx) {
-        return this.frames.get(idx);
+    public Sprite(String id, String path1, String path2) {
+        this(id, path1);
+        this.frame2 = Imgcodecs.imread(path2);
     }
 
     public int numFrames() {
-        return this.frames.size();
+        return this.frame2 == null ? 1 : 2;
     }
 
-    public int getValue() {
-        return value;
+    public Mat getFrame1() {
+        return frame1;
+    }
+
+    public Mat getFrame2() {
+        return frame2;
+    }
+
+    public String getId() {
+        return id;
     }
 }

@@ -17,8 +17,12 @@
  */
 package ale.gui;
 
+import ale.screen.ColorPalette;
+import ale.screen.ScreenConverter;
+import ale.screen.ScreenMatrix;
+
+import javax.swing.*;
 import java.awt.image.BufferedImage;
-import javax.swing.JFrame;
 
 /** GUI for the Java ALE agent.
  * 
@@ -29,11 +33,19 @@ public final class AgentGUI extends JFrame implements AbstractUI {
     protected final ScreenDisplay panel;
     /** An object that listens for key presses */
     protected final KeyboardControl keyboard;
+    /** Used to convert ALE screen data to GUI images */
+    protected final ScreenConverter converter;
 
     /** Create a new GUI
      * 
      */
     public AgentGUI(){
+        // Create the color palette we will use to interpret ALE data
+        ColorPalette palette = ColorPalette.makePalette("NTSC");
+
+        // Create an object to convert indexed images to Java images
+        converter = new ScreenConverter(palette);
+
         // Create the keyboard and image panel
         keyboard = new KeyboardControl();
         panel = new ScreenDisplay();
@@ -45,8 +57,22 @@ public final class AgentGUI extends JFrame implements AbstractUI {
         pack();
         setLocationRelativeTo(null);
 
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setVisible(true);
+    }
+
+    /** Internal method to update the image displayed in the GUI.
+     *
+     * @param currentScreen
+     */
+    public void updateImage(ScreenMatrix currentScreen) {
+        // Convert the screen matrix to an image
+        BufferedImage img = converter.convert(currentScreen);
+
+        // Provide the new image to the UI
+        updateFrameCount();
+        setImage(img);
+        refresh();
     }
 
     /** When die() is called, we want to safely close the GUI */

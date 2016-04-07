@@ -17,7 +17,7 @@
  */
 package ale.screen;
 
-import java.awt.Color;
+import java.awt.*;
 
 /** Defines a palette of colors. Up to 256 entries. 0 is always black.
  *
@@ -31,6 +31,21 @@ public abstract class ColorPalette {
     protected Color[] map;
     /** How many entries our map contains. */
     protected int numEntries;
+
+    /** Create a color palette used to display the screen. The currently available
+     *   choices are NTSC (128 colors) and SECAM (8 colors).
+     *
+     * @param paletteName The name of the palette (NTSC or SECAM).
+     * @return
+     */
+    public static ColorPalette makePalette(String paletteName) {
+        if (paletteName.equals("NTSC"))
+            return new NTSCPalette();
+        else if (paletteName.equals("SECAM"))
+            return new SECAMPalette();
+        else
+            throw new IllegalArgumentException("Invalid palette: "+paletteName);
+    }
 
     /** Create a new map, with entry #0 being black.
      * 

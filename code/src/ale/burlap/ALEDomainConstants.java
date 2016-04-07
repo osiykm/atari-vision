@@ -3,7 +3,7 @@ package ale.burlap;
 /**
  * Created by MelRod on 3/12/16.
  */
-public class DomainConstants {
+public class ALEDomainConstants {
 
     // Attribute Names
     /**
@@ -36,4 +36,9 @@ public class DomainConstants {
 
     // Propositional Function names
     public static final String PFVertAlign = "pfVertAlign";
+
+
+    // Constants
+    public static final int ALEScreenWidth = 160;
+    public static final int ALEScreenHeight = 210;
 }

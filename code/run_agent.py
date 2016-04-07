@@ -12,7 +12,7 @@ def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin')
 	environment = Popen([ALE_FILE, '-game_controller', 'fifo', ROM_FOLDER+rom], stdin=PIPE, stdout=PIPE)
 
 	# start agent
-	agent_args = ['java', '-Xmx1024M', '-jar', JAR_FILE, '-agent', agent]
+	agent_args = ['java', '-Xmx1024M', '-jar', JAR_FILE, '-agent', agent, '-episodes', str(max_episodes)]
 	if not gui:
 		agent_args.append('-nogui')
 
@@ -34,7 +34,6 @@ def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin')
 	while(1):
 		# check for premature environment termination
 		if environment.poll() != None:
-			agent.kill()
 			break
 
 		# read from environment, send to agent
@@ -51,11 +50,6 @@ def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin')
 			print 'Episode ' + str(episode) + ': ' + str(cum_reward)
 			cum_rewards.append(cum_reward)
 			episode += 1
-
-			# break at the end of experiment
-			if episode > max_episodes:
-				print 'FINISHED'
-				break
 			cum_reward = 0
 
 		# check for premature agent termination
@@ -72,6 +66,10 @@ def run_agent(agent='human', gui=True, max_episodes=1, rom='space_invaders.bin')
 
 		# send to environment
 		environment.stdin.write(a)
+
+	# Clean-up subprocesses
+	environment.kill()
+	agent.kill()
 
 	return cum_rewards
 
