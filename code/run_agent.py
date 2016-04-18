@@ -2,7 +2,7 @@ import os
 import sys
 from subprocess import Popen, PIPE
 
-JAR_FILE = 'dist/atari_agent.jar'
+JAR_FILE = 'target/atari-vision-0.0.1.jar'
 ALE_FILE = './ale'
 ROM_FOLDER = 'roms/'
 

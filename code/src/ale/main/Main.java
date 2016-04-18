@@ -15,13 +15,17 @@ import org.opencv.core.Core;
  */
 public class Main {
 
+    // Load external libraries
+    static {
+        // load OpenCV
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    }
+
     /** A simple main class for running the Human agent.
      *
      * @param args
      */
     public static void main(String[] args) {
-        // Initialize any needed resources
-        init();
 
         // Parameters; default values
         String agentName = "";
@@ -154,13 +158,5 @@ public class Main {
         System.err.println ("Example: java HumanAgent -named_pipes /tmp/ale_fifo_");
         System.err.println ("  Will start an agent that communicates with ALE via named pipes \n"+
                 "  /tmp/ale_fifo_in and /tmp/ale_fifo_out");
-    }
-
-    /**
-     * Initializes needed resources.
-     */
-    public static void init() {
-        System.load(System.getProperty("user.dir") + "/dist/lib" + Core.NATIVE_LIBRARY_NAME + ".so");
-        //System.load("/usr/local/Cellar/opencv3/3.1.0_1/share/OpenCV/java/libopencv_java310.so");
     }
 }
