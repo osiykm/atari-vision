@@ -19,8 +19,8 @@
 
         <dependency>
             <groupId>org.opencv</groupId>
-            <artifactId>opencv3</artifactId>
-            <version>3.1</version>
+            <artifactId>opencv</artifactId>
+            <version>LATEST</version>
         </dependency>
 
     </dependencies>
