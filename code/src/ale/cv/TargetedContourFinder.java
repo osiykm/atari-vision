@@ -1,5 +1,6 @@
 package ale.cv;
 
+import ale.burlap.ALEDomainConstants;
 import ale.screen.NTSCPalette;
 import ale.screen.ScreenConverter;
 import ale.screen.ScreenMatrix;
@@ -21,6 +22,20 @@ public class TargetedContourFinder {
     private final Scalar ALIEN_COLOR = new Scalar(29, 134, 134);
     private final Scalar PLAYER_COLOR = new Scalar(50, 132, 50);
     private final Scalar BOMB_COLOR = new Scalar(40, 83, 181);
+
+    // Indices
+    public static final int ALIEN_INDEX = 0;
+    public static final int PLAYER_INDEX = 1;
+    public static final int BOMB_INDEX = 2;
+    public static final String[] CLASS_IDS = {ALEDomainConstants.CLASSALIEN,
+                                              ALEDomainConstants.CLASSAGENT,
+                                              ALEDomainConstants.CLASSBOMB};
+
+    // Shared targeted sprite finder
+    private static TargetedContourFinder tcf = new TargetedContourFinder();
+    public static TargetedContourFinder getTCF() {
+        return tcf;
+    }
 
     public TargetedContourFinder() {
         screenConverter = new ScreenConverter(new NTSCPalette());
@@ -70,7 +85,7 @@ public class TargetedContourFinder {
         locations.add(player);
 
         // Filter to select only bombs
-        ArrayList<Point> bombs = findSpritePoints(screenMat, BOMB_COLOR, 0, 20);
+        ArrayList<Point> bombs = findSpritePoints(screenMat, BOMB_COLOR, 0, 5);
         locations.add(bombs);
 
         return locations;
