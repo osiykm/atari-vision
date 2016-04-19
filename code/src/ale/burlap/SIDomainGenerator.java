@@ -77,6 +77,7 @@ public class SIDomainGenerator extends ALEDomainGenerator {
         StateRenderLayer rl = new StateRenderLayer();
         rl.addObjectClassPainter(ALEDomainConstants.CLASSAGENT, new SIPainter(Color.GREEN));
         rl.addObjectClassPainter(ALEDomainConstants.CLASSALIEN, new SIPainter(Color.YELLOW));
+        rl.addObjectClassPainter(ALEDomainConstants.CLASSBOMB, new SIPainter(Color.ORANGE));
 
         return rl;
     }
