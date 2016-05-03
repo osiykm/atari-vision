@@ -1,11 +1,8 @@
 package ale.agents;
 
 import ale.burlap.ALEState;
-import burlap.behavior.policy.Policy;
 import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.oomdp.core.Domain;
-import burlap.oomdp.core.states.State;
-import burlap.oomdp.singleagent.GroundedAction;
 import burlap.oomdp.visualizer.Visualizer;
 
 /**
@@ -15,8 +12,8 @@ public class BurlapLearningAgent extends BurlapAgent {
 
     LearningAgent learningAgent;
 
-    public BurlapLearningAgent(Policy policy, LearningAgent learningAgent, Domain domain, ALEState initialState, Visualizer vis, boolean useGUI) {
-        super(policy, domain, initialState, vis, useGUI);
+    public BurlapLearningAgent(LearningAgent learningAgent, Domain domain, ALEState initialState, Visualizer vis, boolean useGUI) {
+        super(null, domain, initialState, vis, useGUI);
 
         this.learningAgent = learningAgent;
     }

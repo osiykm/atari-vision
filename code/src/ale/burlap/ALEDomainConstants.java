@@ -6,26 +6,14 @@ package ale.burlap;
 public class ALEDomainConstants {
 
     // Attribute Names
-    /**
-     * Constant for the name of the x position attribute.
-     */
-    public static final String				XATTNAME = "xAtt";
+    public static final String				XATTNAME = "xAtt"; // x-coordinate attribute
+    public static final String				YATTNAME = "yAtt"; // y-coordinate attribute
 
-    /**
-     * Constant for the name of the y position attribute.
-     */
-    public static final String				YATTNAME = "yAtt";
+    public static final String				AGENT_CENT_XATTNAME = "acxAtt"; // agent-centered x-coordinate attribute
+    public static final String				AGENT_CENT_YATTNAME = "acyAtt"; // agent-centered y-coordinate attribute
 
-
-    /**
-     * Constant for the name of the x velocity attribute.
-     */
-    public static final String				VXATTNAME = "vxAtt";
-
-    /**
-     * Constant for the name of the y velocity attribute.
-     */
-    public static final String				VYATTNAME = "vyAtt";
+    public static final String				VXATTNAME = "vxAtt"; // x velocity attribute
+    public static final String				VYATTNAME = "vyAtt"; // y velocity attribute
 
 
     // Object Class Names

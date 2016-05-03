@@ -6,13 +6,23 @@ import ale.agents.BurlapLearningAgent;
 import ale.agents.HumanAgent;
 import ale.burlap.*;
 import ale.burlap.alepolicies.NaiveSIPolicy;
+import ale.burlap.sarsa.MultiObjectTiling;
+import ale.burlap.sarsa.ObjectTiling;
+import ale.io.Actions;
+import burlap.behavior.policy.GreedyQPolicy;
 import burlap.behavior.policy.RandomPolicy;
+import burlap.behavior.singleagent.learnfromdemo.mlirl.support.QGradientPlanner;
+import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.tdmethods.vfa.GradientDescentSarsaLam;
 import burlap.behavior.singleagent.vfa.DifferentiableStateActionValue;
 import burlap.behavior.singleagent.vfa.cmac.CMACFeatureDatabase;
+import burlap.behavior.valuefunction.QFunction;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.visualizer.Visualizer;
 import org.opencv.core.Core;
+
+import java.io.*;
+import java.util.ArrayList;
 
 /**
  * Created by MelRod on 3/4/16.
@@ -95,14 +105,54 @@ public class Main {
                 }
 
                 agent = new BurlapAgent(new NaiveSIPolicy(domain), domain, initialState, vis, useGUI);
+                agent.run(episodes);
             } else if (agentName.equals("sarsa")) {
                 SIDomainGenerator domGen = new SIDomainGenerator();
                 Domain domain = domGen.generateDomain();
                 ALEState initialState = new OOALEState();
 
+                MultiObjectTiling tiling = createMultiObjectTiling();
+                LearningAgent learner = new GradientDescentSarsaLam(domain, 0.99, tiling, 0.00005, 0.7);
+
                 Visualizer vis = null;
 
-                agent = new BurlapLearningAgent(new NaiveSIPolicy(domain), createSarsaLearner(domain), domain, initialState, vis, useGUI);
+                agent = new BurlapLearningAgent(learner, domain, initialState, vis, useGUI);
+                agent.run(episodes);
+
+                // save VFA parameters
+                try {
+                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream("objectTilings.obj"));
+                    objectOutputStream.writeObject(tiling);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else if (agentName.equals("sarsa_test")) {
+                SIDomainGenerator domGen = new SIDomainGenerator();
+                Domain domain = domGen.generateDomain();
+                ALEState initialState = new OOALEState();
+
+
+                // load VFA parameters
+                MultiObjectTiling tiling;
+                try {
+                    ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("objectTilings.obj"));
+                    tiling = (MultiObjectTiling) objectInputStream.readObject();
+                    GradientDescentSarsaLam sarsaLam = new GradientDescentSarsaLam(domain, 0.99, tiling, 0.0005, 0.6);
+
+                    Visualizer vis = null;
+                    if (useGUI) {
+                        vis = domGen.getParamVisualizer(tiling.objectTilings.get(2), Actions.map("player_a_rightfire"));
+                    }
+
+                    agent = new BurlapAgent(new GreedyQPolicy(sarsaLam), domain, initialState, vis, useGUI);
+                    agent.run(episodes);
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             } else {
                 if (!agentName.equals("random")) {
                     System.err.println("Unknown agent was specified. Using Random agent");
@@ -113,52 +163,48 @@ public class Main {
                 ALEState initialState = new BlankALEState();
 
                 agent = new BurlapAgent(new RandomPolicy(domain), domain, initialState, null, useGUI);
+                agent.run(episodes);
             }
-
-            agent.run(episodes);
         }
     }
 
-    public static GradientDescentSarsaLam createSarsaLearner(Domain domain) {
-        int nTilings = 5;
-        CMACFeatureDatabase cmac = new CMACFeatureDatabase(nTilings,
-                CMACFeatureDatabase.TilingArrangement.RANDOMJITTER);
-        double resolution = 10.;
+    public static MultiObjectTiling createMultiObjectTiling() {
 
-        double xWidth = SIDomainGenerator.objectWidth / resolution;
-        double yWidth = SIDomainGenerator.objectWidth / resolution;
+        int numTilesX = 14;
+        int numTilesY = 20;
 
-        // agent tiling
-        cmac.addSpecificationForAllTilings(ALEDomainConstants.CLASSAGENT,
-                domain.getAttribute(ALEDomainConstants.XATTNAME),
-                xWidth);
-        cmac.addSpecificationForAllTilings(ALEDomainConstants.CLASSAGENT,
-                domain.getAttribute(ALEDomainConstants.YATTNAME),
-                yWidth);
+        ArrayList<ObjectTiling> tilings = new ArrayList<>();
 
-        // alien tiling
-        cmac.addSpecificationForAllTilings(ALEDomainConstants.CLASSALIEN,
-                domain.getAttribute(ALEDomainConstants.XATTNAME),
-                xWidth);
-        cmac.addSpecificationForAllTilings(ALEDomainConstants.CLASSALIEN,
-                domain.getAttribute(ALEDomainConstants.YATTNAME),
-                yWidth);
+        // Add Agent tiling
+        tilings.add(new ObjectTiling(
+                ALEDomainConstants.CLASSAGENT,
+                ALEDomainConstants.XATTNAME,
+                ALEDomainConstants.YATTNAME,
+                0, 0, ALEDomainConstants.ALEScreenWidth, ALEDomainConstants.ALEScreenHeight,
+                numTilesX, 1
+        ));
 
-        // bomb tiling
-        cmac.addSpecificationForAllTilings(ALEDomainConstants.CLASSBOMB,
-                domain.getAttribute(ALEDomainConstants.XATTNAME),
-                xWidth);
-        cmac.addSpecificationForAllTilings(ALEDomainConstants.CLASSBOMB,
-                domain.getAttribute(ALEDomainConstants.YATTNAME),
-                yWidth);
-//        cmac.addSpecificationForAllTilings(ALEDomainConstants.CLASSBOMB,
-//                domain.getAttribute(ALEDomainConstants.VYATTNAME),
-//                1);
+        // Add Alien tiling
+        tilings.add(new ObjectTiling(
+                ALEDomainConstants.CLASSALIEN,
+                ALEDomainConstants.AGENT_CENT_XATTNAME,
+                ALEDomainConstants.AGENT_CENT_YATTNAME,
+                -ALEDomainConstants.ALEScreenWidth, -ALEDomainConstants.ALEScreenHeight,
+                ALEDomainConstants.ALEScreenWidth, ALEDomainConstants.ALEScreenHeight,
+                2*numTilesX, 2*numTilesY
+        ));
 
-        double defaultQ = 0.5;
-        DifferentiableStateActionValue vfa = cmac.generateVFA(defaultQ/nTilings);
+        // Add Bomb tiling
+        tilings.add(new ObjectTiling(
+                ALEDomainConstants.CLASSBOMB,
+                ALEDomainConstants.AGENT_CENT_XATTNAME,
+                ALEDomainConstants.AGENT_CENT_YATTNAME,
+                -ALEDomainConstants.ALEScreenWidth,  -ALEDomainConstants.ALEScreenHeight,
+                ALEDomainConstants.ALEScreenWidth, ALEDomainConstants.ALEScreenHeight,
+                2*numTilesX, 2*numTilesY
+        ));
 
-        return new GradientDescentSarsaLam(domain, 0.99, vfa, 0.02, 0.5);
+        return new MultiObjectTiling(tilings);
     }
 
     /** Prints out command-line usage text.

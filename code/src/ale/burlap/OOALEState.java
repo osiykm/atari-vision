@@ -40,6 +40,36 @@ public class OOALEState extends MutableState implements ALEState {
             }
         }
 
+        // Set agent-centered attributes
+        List<ObjectInstance> agentInstances = s.getObjectsOfClass(ALEDomainConstants.CLASSAGENT);
+        int agentX;
+        int agentY;
+        if (agentInstances.size() > 0) {
+            ObjectInstance agentInstance = agentInstances.get(0);
+            agentX = agentInstance.getIntValForAttribute(ALEDomainConstants.XATTNAME);
+            agentY = agentInstance.getIntValForAttribute(ALEDomainConstants.YATTNAME);
+        } else {
+            agentX = 0;
+            agentY = 0;
+        }
+        for (int i = 0; i < sprites.size(); i++) {
+            String spriteID = TargetedContourFinder.CLASS_IDS[i];
+
+            if (spriteID.equals(ALEDomainConstants.CLASSAGENT)) {
+                continue;
+            }
+
+            for (ObjectInstance obj : s.getObjectsOfClass(spriteID)) {
+
+                int x = obj.getIntValForAttribute(ALEDomainConstants.XATTNAME);
+                int y = obj.getIntValForAttribute(ALEDomainConstants.YATTNAME);
+
+                obj.setValue(ALEDomainConstants.AGENT_CENT_XATTNAME, x - agentX);
+                obj.setValue(ALEDomainConstants.AGENT_CENT_YATTNAME, y - agentY);
+            }
+        }
+
+
         return s;
     }
 }
