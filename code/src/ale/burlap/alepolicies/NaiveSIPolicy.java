@@ -1,7 +1,6 @@
 package ale.burlap.alepolicies;
 
 import ale.burlap.ALEDomainConstants;
-import ale.io.Actions;
 import burlap.behavior.policy.Policy;
 import burlap.oomdp.core.AbstractGroundedAction;
 import burlap.oomdp.core.Domain;
@@ -10,11 +9,8 @@ import burlap.oomdp.core.PropositionalFunction;
 import burlap.oomdp.core.objects.ObjectInstance;
 import burlap.oomdp.core.states.State;
 import burlap.oomdp.singleagent.Action;
-import burlap.oomdp.singleagent.GroundedAction;
 import burlap.oomdp.singleagent.common.NullAction;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**

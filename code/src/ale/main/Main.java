@@ -6,17 +6,15 @@ import ale.agents.BurlapLearningAgent;
 import ale.agents.HumanAgent;
 import ale.burlap.*;
 import ale.burlap.alepolicies.NaiveSIPolicy;
+import ale.burlap.sarsa.AnnealedEpsilonGreedy;
 import ale.burlap.sarsa.MultiObjectTiling;
 import ale.burlap.sarsa.ObjectTiling;
 import ale.io.Actions;
+import burlap.behavior.policy.EpsilonGreedy;
 import burlap.behavior.policy.GreedyQPolicy;
 import burlap.behavior.policy.RandomPolicy;
-import burlap.behavior.singleagent.learnfromdemo.mlirl.support.QGradientPlanner;
 import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.tdmethods.vfa.GradientDescentSarsaLam;
-import burlap.behavior.singleagent.vfa.DifferentiableStateActionValue;
-import burlap.behavior.singleagent.vfa.cmac.CMACFeatureDatabase;
-import burlap.behavior.valuefunction.QFunction;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.visualizer.Visualizer;
 import org.opencv.core.Core;
@@ -97,7 +95,7 @@ public class Main {
             if (agentName.equals("naive")) {
                 SIDomainGenerator domGen = new SIDomainGenerator();
                 Domain domain = domGen.generateDomain();
-                ALEState initialState = new OOALEState();
+                ALEState initialState = new SIALEState();
 
                 Visualizer vis = null;
                 if (useGUI) {
@@ -109,10 +107,13 @@ public class Main {
             } else if (agentName.equals("sarsa")) {
                 SIDomainGenerator domGen = new SIDomainGenerator();
                 Domain domain = domGen.generateDomain();
-                ALEState initialState = new OOALEState();
+                ALEState initialState = new SIALEState();
 
                 MultiObjectTiling tiling = createMultiObjectTiling();
-                LearningAgent learner = new GradientDescentSarsaLam(domain, 0.99, tiling, 0.00005, 0.7);
+
+                GradientDescentSarsaLam learner = new GradientDescentSarsaLam(domain, 0.99, tiling, 0.002, 0.99);
+                AnnealedEpsilonGreedy policy = new AnnealedEpsilonGreedy(learner, 1.0D, 0.1D, 500000);
+                learner.setLearningPolicy(policy);
 
                 Visualizer vis = null;
 
@@ -129,7 +130,7 @@ public class Main {
             } else if (agentName.equals("sarsa_test")) {
                 SIDomainGenerator domGen = new SIDomainGenerator();
                 Domain domain = domGen.generateDomain();
-                ALEState initialState = new OOALEState();
+                ALEState initialState = new SIALEState();
 
 
                 // load VFA parameters
@@ -137,14 +138,17 @@ public class Main {
                 try {
                     ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("objectTilings.obj"));
                     tiling = (MultiObjectTiling) objectInputStream.readObject();
-                    GradientDescentSarsaLam sarsaLam = new GradientDescentSarsaLam(domain, 0.99, tiling, 0.0005, 0.6);
+
+                    // Dummy learner
+                    GradientDescentSarsaLam learner = new GradientDescentSarsaLam(domain, 0.99, tiling, 0.002, 0.6);
 
                     Visualizer vis = null;
-                    if (useGUI) {
-                        vis = domGen.getParamVisualizer(tiling.objectTilings.get(2), Actions.map("player_a_rightfire"));
-                    }
+//                    if (useGUI) {
+//                        vis = domGen.getParamVisualizer(tiling.objectTilings.get(2), Actions.map("player_a_rightfire"));
+//                    }
 
-                    agent = new BurlapAgent(new GreedyQPolicy(sarsaLam), domain, initialState, vis, useGUI);
+//                    agent = new BurlapAgent(new EpsilonGreedy(learner, 0.1D), domain, initialState, vis, useGUI);
+                    agent = new BurlapLearningAgent(learner, domain, initialState, vis, useGUI);
                     agent.run(episodes);
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
@@ -196,7 +200,7 @@ public class Main {
 
         // Add Bomb tiling
         tilings.add(new ObjectTiling(
-                ALEDomainConstants.CLASSBOMB,
+                ALEDomainConstants.CLASS_BOMB_ALIEN,
                 ALEDomainConstants.AGENT_CENT_XATTNAME,
                 ALEDomainConstants.AGENT_CENT_YATTNAME,
                 -ALEDomainConstants.ALEScreenWidth,  -ALEDomainConstants.ALEScreenHeight,

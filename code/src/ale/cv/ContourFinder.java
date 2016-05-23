@@ -4,7 +4,6 @@ import ale.screen.NTSCPalette;
 import ale.screen.ScreenConverter;
 import ale.screen.ScreenMatrix;
 import org.opencv.core.*;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;

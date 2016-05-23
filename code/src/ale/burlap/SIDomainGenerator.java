@@ -5,7 +5,6 @@ import ale.burlap.sarsa.MultiObjectTiling;
 import ale.burlap.sarsa.ObjectTiling;
 import ale.cv.SpriteFinder;
 import ale.io.Actions;
-import burlap.behavior.singleagent.vfa.DifferentiableStateActionValue;
 import burlap.oomdp.core.Attribute;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.ObjectClass;
@@ -20,7 +19,7 @@ import burlap.oomdp.visualizer.Visualizer;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
 
 /**
  * Space Invaders Domain Generator
@@ -65,12 +64,15 @@ public class SIDomainGenerator extends ALEDomainGenerator {
         alienClass.addAttribute(agentCenteredX);
         alienClass.addAttribute(agentCenteredY);
         // bomb
-        ObjectClass bombClass = new ObjectClass(domain, ALEDomainConstants.CLASSBOMB);
-        bombClass.addAttribute(xAtt);
-        bombClass.addAttribute(yAtt);
-        bombClass.addAttribute(vyAtt);
-        bombClass.addAttribute(agentCenteredX);
-        bombClass.addAttribute(agentCenteredY);
+        String[] bombClassNames = {ALEDomainConstants.CLASS_BOMB_UNKNOWN, ALEDomainConstants.CLASS_BOMB_AGENT, ALEDomainConstants.CLASS_BOMB_ALIEN};
+        for (String bombClassName : bombClassNames) {
+            ObjectClass bombClass = new ObjectClass(domain, bombClassName);
+            bombClass.addAttribute(xAtt);
+            bombClass.addAttribute(yAtt);
+            bombClass.addAttribute(vyAtt);
+            bombClass.addAttribute(agentCenteredX);
+            bombClass.addAttribute(agentCenteredY);
+        }
 
         // Propositional Functions
         new PFVertAlign(
@@ -81,7 +83,7 @@ public class SIDomainGenerator extends ALEDomainGenerator {
         new PFVertAlign(
                 ALEDomainConstants.PFVertAlign,
                 domain,
-                new String[]{ALEDomainConstants.CLASSAGENT, ALEDomainConstants.CLASSBOMB},
+                new String[]{ALEDomainConstants.CLASSAGENT, ALEDomainConstants.CLASS_BOMB_ALIEN},
                 objectWidth);
 
         return domain;
@@ -118,7 +120,7 @@ public class SIDomainGenerator extends ALEDomainGenerator {
 
         // Add Bomb tiling
         tilings.add(new ObjectTiling(
-                ALEDomainConstants.CLASSBOMB,
+                ALEDomainConstants.CLASS_BOMB_ALIEN,
                 ALEDomainConstants.AGENT_CENT_XATTNAME,
                 ALEDomainConstants.AGENT_CENT_YATTNAME,
                 -ALEDomainConstants.ALEScreenWidth,  -ALEDomainConstants.ALEScreenHeight,
@@ -130,7 +132,9 @@ public class SIDomainGenerator extends ALEDomainGenerator {
 
         rl.addObjectClassPainter(ALEDomainConstants.CLASSAGENT, new SIPainter(Color.GREEN));
         rl.addObjectClassPainter(ALEDomainConstants.CLASSALIEN, new SIPainter(Color.YELLOW));
-        rl.addObjectClassPainter(ALEDomainConstants.CLASSBOMB, new SIPainter(Color.ORANGE));
+        rl.addObjectClassPainter(ALEDomainConstants.CLASS_BOMB_AGENT, new SIPainter(Color.ORANGE));
+        rl.addObjectClassPainter(ALEDomainConstants.CLASS_BOMB_ALIEN, new SIPainter(Color.RED));
+        rl.addObjectClassPainter(ALEDomainConstants.CLASS_BOMB_UNKNOWN, new SIPainter(Color.GRAY));
 
         return rl;
     }
@@ -224,7 +228,7 @@ public class SIDomainGenerator extends ALEDomainGenerator {
                     g2.setColor(Color.cyan);
                 } else if (tiling.objectClass.equals(ALEDomainConstants.CLASSALIEN)) {
                     g2.setColor(Color.red);
-                } else if (tiling.objectClass.equals(ALEDomainConstants.CLASSBOMB)) {
+                } else if (tiling.objectClass.equals(ALEDomainConstants.CLASS_BOMB_ALIEN)) {
                     g2.setColor(Color.black);
                 } else {
                     g2.setColor(Color.black);
@@ -314,7 +318,7 @@ public class SIDomainGenerator extends ALEDomainGenerator {
                     maxParam = -param;
                 }
             }
-            System.err.println("MAX PARAM: " + maxParam);
+//            System.err.println("MAX PARAM: " + maxParam);
 
             // make fill
             for (int i = 0; i < tiling.numTiles; i++) {

@@ -16,10 +16,14 @@ public class ALEDomainConstants {
     public static final String				VYATTNAME = "vyAtt"; // y velocity attribute
 
 
+
     // Object Class Names
     public static final String CLASSAGENT = "agent";
     public static final String CLASSALIEN = "alien";
-    public static final String CLASSBOMB = "bomb";
+
+    public static final String CLASS_BOMB_UNKNOWN = "bomb_unknown";
+    public static final String CLASS_BOMB_AGENT = "bomb_agent";
+    public static final String CLASS_BOMB_ALIEN = "bomb_alien";
 
 
     // Propositional Function names

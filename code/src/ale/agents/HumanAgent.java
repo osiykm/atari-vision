@@ -20,6 +20,8 @@ package ale.agents;
 import ale.io.ConsoleRAM;
 import ale.io.RLData;
 import ale.movie.MovieGenerator;
+import ale.screen.NTSCPalette;
+import ale.screen.ScreenConverter;
 import ale.screen.ScreenMatrix;
 
 /** An 'agent' meant to be controlled by a human. Used to play the game and
@@ -30,6 +32,8 @@ import ale.screen.ScreenMatrix;
 public class HumanAgent extends AbstractAgent {
     /** The object used to save frames to the disk */
     protected MovieGenerator movieGenerator;
+    ScreenConverter screenConverter;
+    String movieOutputFile = "./movies/human/atari_";
 
     /** Variables to enforce 60 frames per second */
     protected long lastFrameTime;
@@ -49,6 +53,11 @@ public class HumanAgent extends AbstractAgent {
 
     public HumanAgent() {
         super(true);
+
+        if (movieOutputFile != null) {
+            movieGenerator = new MovieGenerator(movieOutputFile);
+            screenConverter = new ScreenConverter(new NTSCPalette());
+        }
     }
 
     public boolean wantsScreenData() {
@@ -123,5 +132,10 @@ public class HumanAgent extends AbstractAgent {
         }
         else
             displayedGameOver = false;
+
+        // Save screen capture
+        if (movieGenerator != null) {
+            movieGenerator.record(screenConverter.convert(screen));
+        }
     }
 }

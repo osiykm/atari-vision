@@ -4,6 +4,9 @@ import ale.gui.AgentGUI;
 import ale.io.ALEPipes;
 import ale.io.Actions;
 import ale.io.RLData;
+import ale.movie.MovieGenerator;
+import ale.screen.NTSCPalette;
+import ale.screen.ScreenConverter;
 import ale.screen.ScreenMatrix;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.states.State;
@@ -17,6 +20,10 @@ import java.io.IOException;
  * Created by MelRod on 3/18/16.
  */
 public class ALEEnvironment implements Environment {
+
+    MovieGenerator movieGenerator;
+    ScreenConverter screenConverter;
+    String movieOutputFile = null;//"./movies/naive/atari_";
 
     /** The UI used for displaying images and receiving actions */
     private AgentGUI ui;
@@ -75,6 +82,11 @@ public class ALEEnvironment implements Environment {
         currentState = currentState.updateStateWithScreen(domain, screen);
         lastReward = rlData.reward;
         isTerminal = rlData.isTerminal;
+
+        // Save screen capture
+        if (movieGenerator != null) {
+            movieGenerator.record(screenConverter.convert(screen));
+        }
     }
 
     @Override
@@ -141,6 +153,12 @@ public class ALEEnvironment implements Environment {
         catch (IOException e) {
             System.err.println ("Could not initialize pipes: "+e.getMessage());
             System.exit(-1);
+        }
+
+        // if we are saving the screen buffers, init relevant objects
+        if (movieOutputFile != null) {
+            movieGenerator = new MovieGenerator(movieOutputFile);
+            screenConverter = new ScreenConverter(new NTSCPalette());
         }
     }
 }

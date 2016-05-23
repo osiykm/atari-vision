@@ -9,8 +9,7 @@ import burlap.oomdp.core.AbstractGroundedAction;
 import burlap.oomdp.core.objects.ObjectInstance;
 import burlap.oomdp.core.states.State;
 
-import java.io.*;
-import java.nio.ByteBuffer;
+import java.io.Serializable;
 import java.util.BitSet;
 import java.util.List;
 
@@ -111,7 +110,7 @@ public class ObjectTiling implements DifferentiableStateActionValue, Serializabl
 
         ///////////////////////////////////////
         // DEBUGGING: print tiling
-//        if (objectClass.equals(ALEDomainConstants.CLASSALIEN) && abstractGroundedAction.actionName().equals("player_a_rightfire")) {
+//        if (objectClass.equals(ALEDomainConstants.CLASS_BOMB_ALIEN) && abstractGroundedAction.actionName().equals("player_a_rightfire")) {
 ////
 ////            System.err.println();
 ////            System.err.println(abstractGroundedAction.actionName() + ": ");
@@ -123,7 +122,7 @@ public class ObjectTiling implements DifferentiableStateActionValue, Serializabl
 //                    System.err.println();
 //                }
 //
-//                System.err.print(String.format( "%.2f ", params[i + indexOffset] ));
+//                System.err.print(String.format( "%.3f ", params[i + indexOffset] ));
 //            }
 //            System.err.println();
 //        }

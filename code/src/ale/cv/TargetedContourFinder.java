@@ -5,10 +5,10 @@ import ale.screen.NTSCPalette;
 import ale.screen.ScreenConverter;
 import ale.screen.ScreenMatrix;
 import org.opencv.core.*;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -22,14 +22,6 @@ public class TargetedContourFinder {
     private final Scalar ALIEN_COLOR = new Scalar(29, 134, 134);
     private final Scalar PLAYER_COLOR = new Scalar(50, 132, 50);
     private final Scalar BOMB_COLOR = new Scalar(40, 83, 181);
-
-    // Indices
-    public static final int ALIEN_INDEX = 0;
-    public static final int PLAYER_INDEX = 1;
-    public static final int BOMB_INDEX = 2;
-    public static final String[] CLASS_IDS = {ALEDomainConstants.CLASSALIEN,
-                                              ALEDomainConstants.CLASSAGENT,
-                                              ALEDomainConstants.CLASSBOMB};
 
     // Shared targeted sprite finder
     private static TargetedContourFinder tcf = new TargetedContourFinder();
@@ -69,24 +61,24 @@ public class TargetedContourFinder {
         return points;
     }
 
-    public List<List<Point>> findSprites(ScreenMatrix screen) {
+    public HashMap<String, List<Point>> findSprites(ScreenMatrix screen) {
         // List to contain all lists of sprite locations
-        List<List<Point>> locations = new ArrayList<>();
+        HashMap<String, List<Point>> locations = new HashMap<>();
 
         // Convert screen to Mat
         Mat screenMat = screenConverter.convertMat(screen);
 
         // Filter to select only aliens
         ArrayList<Point> aliens = findSpritePoints(screenMat, ALIEN_COLOR, 8, 100);
-        locations.add(aliens);
+        locations.put(ALEDomainConstants.CLASSALIEN, aliens);
 
         // Filter to select only player
         ArrayList<Point> player = findSpritePoints(screenMat, PLAYER_COLOR, 5, 50);
-        locations.add(player);
+        locations.put(ALEDomainConstants.CLASSAGENT, player);
 
         // Filter to select only bombs
         ArrayList<Point> bombs = findSpritePoints(screenMat, BOMB_COLOR, 0, 5);
-        locations.add(bombs);
+        locations.put(ALEDomainConstants.CLASS_BOMB_UNKNOWN, bombs);
 
         return locations;
     }
