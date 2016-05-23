@@ -1,6 +1,7 @@
 package ale.burlap;
 
 import ale.gui.AgentGUI;
+import ale.io.ALEDriver;
 import ale.io.ALEPipes;
 import ale.io.Actions;
 import ale.io.RLData;
@@ -28,7 +29,7 @@ public class ALEEnvironment implements Environment {
     /** The UI used for displaying images and receiving actions */
     private AgentGUI ui;
     /** The I/O object used to communicate with ALE */
-    private ALEPipes io;
+    private ALEDriver io;
 
     /** State data **/
     Domain domain;
@@ -39,8 +40,10 @@ public class ALEEnvironment implements Environment {
     /** Parameters */
     /** Whether to use a GUI */
     private boolean useGUI;
+    private String rom;
 
-    public ALEEnvironment(Domain domain, ALEState initialState, boolean useGUI) {
+    public ALEEnvironment(Domain domain, ALEState initialState, String rom, boolean useGUI) {
+        this.rom = rom;
         this.useGUI = useGUI;
         if (this.useGUI) {
             // Create the GUI
@@ -142,7 +145,7 @@ public class ALEEnvironment implements Environment {
 
         try {
             // Initialize the pipes; use named pipes if requested
-            io = new ALEPipes();
+            io = new ALEDriver(rom);
 
             // Determine which information to request from ALE
             io.setUpdateScreen(true);

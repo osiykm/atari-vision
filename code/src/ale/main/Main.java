@@ -91,6 +91,7 @@ public class Main {
             // use BURLAP agent
 
             BurlapAgent agent;
+            String rom = "space_invaders.bin";
 
             if (agentName.equals("naive")) {
                 SIDomainGenerator domGen = new SIDomainGenerator();
@@ -102,7 +103,7 @@ public class Main {
                     vis = domGen.getVisualizer();
                 }
 
-                agent = new BurlapAgent(new NaiveSIPolicy(domain), domain, initialState, vis, useGUI);
+                agent = new BurlapAgent(new NaiveSIPolicy(domain), domain, initialState, vis, rom, useGUI);
                 agent.run(episodes);
             } else if (agentName.equals("sarsa")) {
                 SIDomainGenerator domGen = new SIDomainGenerator();
@@ -117,7 +118,7 @@ public class Main {
 
                 Visualizer vis = null;
 
-                agent = new BurlapLearningAgent(learner, domain, initialState, vis, useGUI);
+                agent = new BurlapLearningAgent(learner, domain, initialState, vis, rom, useGUI);
                 agent.run(episodes);
 
                 // save VFA parameters
@@ -148,7 +149,7 @@ public class Main {
 //                    }
 
 //                    agent = new BurlapAgent(new EpsilonGreedy(learner, 0.1D), domain, initialState, vis, useGUI);
-                    agent = new BurlapLearningAgent(learner, domain, initialState, vis, useGUI);
+                    agent = new BurlapLearningAgent(learner, domain, initialState, vis, rom, useGUI);
                     agent.run(episodes);
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
@@ -166,7 +167,7 @@ public class Main {
                 Domain domain = domGen.generateDomain();
                 ALEState initialState = new BlankALEState();
 
-                agent = new BurlapAgent(new RandomPolicy(domain), domain, initialState, null, useGUI);
+                agent = new BurlapAgent(new RandomPolicy(domain), domain, initialState, null, rom, useGUI);
                 agent.run(episodes);
             }
         }

@@ -19,13 +19,13 @@ public class BurlapAgent {
     ALEEnvironment env;
     Visualizer vis;
 
-    public BurlapAgent(Policy policy, Domain domain, ALEState initialState, Visualizer vis, boolean useGUI) {
+    public BurlapAgent(Policy policy, Domain domain, ALEState initialState, Visualizer vis, String rom, boolean useGUI) {
 
         this.domain = domain;
         this.policy = policy;
         this.vis = vis;
 
-        env = new ALEEnvironment(domain, initialState, useGUI);
+        env = new ALEEnvironment(domain, initialState, rom, useGUI);
     }
 
     public void run(int episodes) {
