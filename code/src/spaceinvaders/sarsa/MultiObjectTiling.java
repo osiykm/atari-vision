@@ -1,4 +1,4 @@
-package ale.burlap.sarsa;
+package spaceinvaders.sarsa;
 
 import burlap.behavior.singleagent.vfa.DifferentiableStateActionValue;
 import burlap.behavior.singleagent.vfa.FunctionGradient;

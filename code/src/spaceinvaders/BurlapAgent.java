@@ -1,4 +1,4 @@
-package ale.agents;
+package spaceinvaders;
 
 import ale.burlap.ALEEnvironment;
 import ale.burlap.ALEState;

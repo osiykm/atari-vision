@@ -1,4 +1,4 @@
-package ale.burlap.sarsa;
+package spaceinvaders.sarsa;
 
 import burlap.behavior.policy.EpsilonGreedy;
 import burlap.behavior.valuefunction.QFunction;

@@ -1,4 +1,4 @@
-package ale.agents;
+package spaceinvaders;
 
 import ale.burlap.ALEState;
 import burlap.behavior.singleagent.learning.LearningAgent;

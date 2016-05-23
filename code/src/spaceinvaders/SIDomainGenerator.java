@@ -1,9 +1,11 @@
-package ale.burlap;
+package spaceinvaders;
 
+import ale.burlap.ALEDomainConstants;
+import ale.burlap.ALEDomainGenerator;
 import ale.burlap.propositionalfunction.PFVertAlign;
-import ale.burlap.sarsa.MultiObjectTiling;
-import ale.burlap.sarsa.ObjectTiling;
-import ale.cv.SpriteFinder;
+import spaceinvaders.sarsa.MultiObjectTiling;
+import spaceinvaders.sarsa.ObjectTiling;
+import spaceinvaders.cv.SpriteFinder;
 import ale.io.Actions;
 import burlap.oomdp.core.Attribute;
 import burlap.oomdp.core.Domain;

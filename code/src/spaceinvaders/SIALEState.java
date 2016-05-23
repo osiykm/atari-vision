@@ -1,6 +1,8 @@
-package ale.burlap;
+package spaceinvaders;
 
-import ale.cv.TargetedContourFinder;
+import ale.burlap.ALEDomainConstants;
+import ale.burlap.ALEState;
+import spaceinvaders.cv.TargetedContourFinder;
 import ale.screen.ScreenMatrix;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.objects.MutableObjectInstance;

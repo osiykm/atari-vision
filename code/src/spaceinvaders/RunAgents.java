@@ -1,19 +1,17 @@
-package ale.main;
+package spaceinvaders;
 
 import ale.agents.AbstractAgent;
-import ale.agents.BurlapAgent;
-import ale.agents.BurlapLearningAgent;
+import spaceinvaders.BurlapAgent;
+import spaceinvaders.BurlapLearningAgent;
 import ale.agents.HumanAgent;
 import ale.burlap.*;
 import ale.burlap.alepolicies.NaiveSIPolicy;
-import ale.burlap.sarsa.AnnealedEpsilonGreedy;
-import ale.burlap.sarsa.MultiObjectTiling;
-import ale.burlap.sarsa.ObjectTiling;
-import ale.io.Actions;
-import burlap.behavior.policy.EpsilonGreedy;
-import burlap.behavior.policy.GreedyQPolicy;
+import spaceinvaders.SIALEState;
+import spaceinvaders.SIDomainGenerator;
+import spaceinvaders.sarsa.AnnealedEpsilonGreedy;
+import spaceinvaders.sarsa.MultiObjectTiling;
+import spaceinvaders.sarsa.ObjectTiling;
 import burlap.behavior.policy.RandomPolicy;
-import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.tdmethods.vfa.GradientDescentSarsaLam;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.visualizer.Visualizer;
@@ -25,7 +23,7 @@ import java.util.ArrayList;
 /**
  * Created by MelRod on 3/4/16.
  */
-public class Main {
+public class RunAgents {
 
     // Load external libraries
     static {
