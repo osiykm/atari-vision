@@ -51,8 +51,8 @@ public class HumanAgent extends AbstractAgent {
     
     protected int numFramesToDisplayRewardFor = framesPerSecond * 1;
 
-    public HumanAgent() {
-        super(true);
+    public HumanAgent(String rom) {
+        super(rom);
 
         if (movieOutputFile != null) {
             movieGenerator = new MovieGenerator(movieOutputFile);
@@ -137,5 +137,12 @@ public class HumanAgent extends AbstractAgent {
         if (movieGenerator != null) {
             movieGenerator.record(screenConverter.convert(screen));
         }
+    }
+
+    public static void main(String[] args) {
+        String rom = "pong.bin";
+
+        HumanAgent agent = new HumanAgent(rom);
+        agent.run();
     }
 }

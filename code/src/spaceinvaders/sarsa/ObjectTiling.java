@@ -107,26 +107,6 @@ public class ObjectTiling implements DifferentiableStateActionValue, Serializabl
             }
         }
 
-        ///////////////////////////////////////
-        // DEBUGGING: print tiling
-//        if (objectClass.equals(ALEDomainConstants.CLASS_BOMB_ALIEN) && abstractGroundedAction.actionName().equals("player_a_rightfire")) {
-////
-////            System.err.println();
-////            System.err.println(abstractGroundedAction.actionName() + ": ");
-//
-//            // print grid
-//            System.err.println();
-//            for (int i = 0; i < numTiles; i++) {
-//                if (i % numTilesX == 0) {
-//                    System.err.println();
-//                }
-//
-//                System.err.print(String.format( "%.3f ", params[i + indexOffset] ));
-//            }
-//            System.err.println();
-//        }
-        ///////////////////////////////////////
-
         return gradient;
     }
 

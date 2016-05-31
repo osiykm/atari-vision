@@ -99,4 +99,10 @@ public class Actions {
             actionsMap.put(actionNames[i], new Integer(v));
         }
     }
+
+
+    /** Game specific action-subsets */
+    public static ActionSet pongActionSet() {
+        return new ActionSet(new String[]{"player_a_noop", "player_a_right", "player_a_left"});
+    }
 }

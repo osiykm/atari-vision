@@ -1,44 +1,73 @@
-package ale.burlap;
+package deeprl.nnstate;
 
+import ale.burlap.ALEState;
 import ale.screen.ScreenMatrix;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.objects.ObjectInstance;
 import burlap.oomdp.core.states.State;
+import deeprl.preprocess.PreProcessor;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Created by MelRod on 3/18/16.
+ * Created by MelRod on 5/27/16.
  */
-public class BlankALEState implements ALEState {
+public class NHistoryState implements NNState {
 
-    private ScreenMatrix screen;
+    private List<INDArray> frameHistory;
+    private PreProcessor preProcessor;
+    private int n; // the history size
 
-    public BlankALEState() {}
-    public BlankALEState(ScreenMatrix screen) {
-        this.screen = screen;
+    protected NHistoryState(NHistoryState oldState) {
+        this.n = oldState.n;
+        this.preProcessor = oldState.preProcessor;
     }
-    public BlankALEState(BlankALEState state) {
-        this.screen = (ScreenMatrix)state.screen.clone();
+
+    public NHistoryState(int n, PreProcessor preProcessor) {
+        this.n = n;
+        this.preProcessor = preProcessor;
+        int frameSize = preProcessor.inputSize();
+
+        this.frameHistory = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) {
+            this.frameHistory.add(Nd4j.zeros(frameSize));
+        }
+    }
+
+    @Override
+    public INDArray getInput() {
+        return Nd4j.hstack(frameHistory.toArray(new INDArray[n]));
     }
 
     @Override
     public ALEState updateStateWithScreen(Domain domain, ScreenMatrix newScreen) {
-        return new BlankALEState(newScreen);
+
+        // Create new input list
+        List<INDArray> newFrameHistory = new ArrayList<>(n);
+
+        // Process the new input
+        newFrameHistory.add(preProcessor.convertScreenToInput(newScreen));
+
+        // Add history
+        for (int i = 0; i < n - 1; i++) {
+            newFrameHistory.add(frameHistory.get(i));
+        }
+
+        // Create new state
+        NHistoryState newState = new NHistoryState(this);
+        newState.frameHistory = newFrameHistory;
+
+        return newState;
     }
 
     @Override
-    public ALEState copy() {
-        return new BlankALEState(this);
+    public State copy() {
+        NHistoryState newState = new NHistoryState(this);
+        newState.frameHistory = frameHistory;
+        return newState;
     }
-
-    public ScreenMatrix getScreen() {
-        return screen;
-    }
-
 
     /** not implemented State methods **/
 

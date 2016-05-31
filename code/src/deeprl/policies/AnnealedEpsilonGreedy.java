@@ -1,4 +1,4 @@
-package spaceinvaders.sarsa;
+package deeprl.policies;
 
 import burlap.behavior.policy.EpsilonGreedy;
 import burlap.behavior.valuefunction.QFunction;
@@ -14,6 +14,7 @@ public class AnnealedEpsilonGreedy extends EpsilonGreedy {
     protected double epsilonEnd;
     protected double epsilonStep;
     protected int annealingTime;
+
 
     public AnnealedEpsilonGreedy(QFunction planner, double epsilonStart, double epsilonEnd, int annealingTime) {
         super(planner, epsilonStart);
@@ -34,6 +35,11 @@ public class AnnealedEpsilonGreedy extends EpsilonGreedy {
             if (epsilon < epsilonEnd) {
                 epsilon = epsilonEnd;
             }
+        }
+
+        double test = epsilon%0.1;
+        if (test <= -epsilonStep && epsilon > epsilonEnd) {
+            System.out.println("EPSILON: " + epsilon);
         }
 
         return action;

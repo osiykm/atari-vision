@@ -18,10 +18,7 @@
 package ale.agents;
 
 import ale.gui.AgentGUI;
-import ale.io.ALEPipes;
-import ale.io.Actions;
-import ale.io.ConsoleRAM;
-import ale.io.RLData;
+import ale.io.*;
 import ale.screen.ScreenMatrix;
 
 import java.io.IOException;
@@ -36,17 +33,18 @@ public abstract class AbstractAgent {
     /** The UI used for displaying images and receiving actions */
     protected AgentGUI ui;
     /** The I/O object used to communicate with ALE */
-    protected ALEPipes io;
+    protected ALEDriver io;
 
     /** Parameters */
+    protected String rom;
     /** Whether to use a GUI */
     protected boolean useGUI;
 
     /** Create a new agent that communicates with ALE via stdin/out and
      *    uses the graphical user interface.
      */
-    public AbstractAgent() {
-        this(true);
+    public AbstractAgent(String rom) {
+        this(rom, true);
     }
 
     /** Create a new agent with the specified parameters. The user can specify
@@ -57,8 +55,9 @@ public abstract class AbstractAgent {
      *
      * @param useGUI If true, a GUI is used to display received screen data.
      */
-    public AbstractAgent(boolean useGUI) {
+    public AbstractAgent(String rom, boolean useGUI) {
         this.useGUI = useGUI;
+        this.rom = rom;
         
         init();
     }
@@ -73,18 +72,18 @@ public abstract class AbstractAgent {
         }
 
         // Create the relevant I/O objects
-        initIO();
+        initIO(rom);
     }
 
     /** Initialize the I/O object for this agent.
      * 
      */
-    protected void initIO() {
+    protected void initIO(String rom) {
         io = null;
 
         try {
             // Initialize the pipes; use named pipes if requested
-            io = new ALEPipes();
+            io = new ALEDriver(rom);
 
             // Determine which information to request from ALE
             io.setUpdateScreen(useGUI || wantsScreenData());

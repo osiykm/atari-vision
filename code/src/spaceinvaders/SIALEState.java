@@ -110,6 +110,10 @@ public class SIALEState extends MutableState implements ALEState {
         return s;
     }
 
+    public ScreenMatrix getScreen() {
+        return screen;
+    }
+
     public ObjectInstance bombWithinThreshold(Point point, List<ObjectInstance> bombs) {
         ObjectInstance oldBomb = null;
 
