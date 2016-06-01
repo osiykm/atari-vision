@@ -1,8 +1,9 @@
 package ale.io;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import burlap.oomdp.singleagent.Action;
+import burlap.oomdp.singleagent.common.NullAction;
+
+import java.util.*;
 
 /**
  * Created by MelRod on 5/28/16.
@@ -33,5 +34,16 @@ public class ActionSet {
 
     public int size() {
         return size;
+    }
+
+    public List<Action> actionList() {
+        List<Action> actionList = new ArrayList<>(actions.length);
+
+        for (int i = 0; i < actions.length; i++) {
+            Action a = new NullAction(actions[i]);
+            actionList.add(a);
+        }
+
+        return actionList;
     }
 }

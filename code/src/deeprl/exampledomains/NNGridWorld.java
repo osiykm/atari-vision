@@ -158,16 +158,16 @@ public class NNGridWorld extends NNVFA {
         Policy policy = new AnnealedEpsilonGreedy(nnGridWorld, 1.0, 0.1, 1000000);
 
         DeepQLearner deepQLearner = new DeepQLearner(nnGridWorld.domain, 0.99, policy, nnGridWorld);
-//        deepQLearner.setExperienceReplay(new FixedSizeMemory(1000000), 32);
-        deepQLearner.setExperienceReplay(new FixedSizeMemory(1000000), 1);
+        deepQLearner.setExperienceReplay(new FixedSizeMemory(1000000), 32);
 
         Policy testPolicy = new EpsilonGreedy(nnGridWorld, 0.05);
 
         // setup helper
-        TrainingHelper helper = new TrainingHelper(deepQLearner, nnGridWorld, testPolicy, nnGridWorld.env);
+        TrainingHelper helper = new TrainingHelper(deepQLearner, nnGridWorld, testPolicy, actionSet, nnGridWorld.env);
         helper.setTotalTrainingFrames(10000000);
         helper.setTestInterval(100000);
         helper.setNumTestEpisodes(10);
+        helper.setNumSampleStates(1000);
 
         // run helper
         helper.run();

@@ -89,6 +89,7 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
         INDArray primeQValues = staleVfa.model.output(primeStateInput);
         INDArray maxPrimeQValues = Nd4j.max(primeQValues, 1);
         // must be called second in case this==staleVfa, since model.output() sets the model input for backprop
+        // since output() sets the model.input
         INDArray qValues = this.model.output(stateInput);
 
 

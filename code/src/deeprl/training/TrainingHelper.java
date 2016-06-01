@@ -1,13 +1,24 @@
 package deeprl.training;
 
+import ale.io.ActionSet;
+import ale.io.Actions;
 import burlap.behavior.policy.Policy;
+import burlap.behavior.policy.RandomPolicy;
 import burlap.behavior.singleagent.EpisodeAnalysis;
+import burlap.domain.singleagent.gridworld.GridWorldDomain;
+import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.states.State;
+import burlap.oomdp.singleagent.Action;
 import burlap.oomdp.singleagent.GroundedAction;
 import burlap.oomdp.singleagent.environment.Environment;
 import burlap.oomdp.singleagent.environment.EnvironmentOutcome;
 import deeprl.learners.DeepQLearner;
 import deeprl.vfa.NNVFA;
+import org.nd4j.linalg.api.ndarray.INDArray;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Created by MelRod on 5/28/16.
@@ -18,6 +29,7 @@ public class TrainingHelper {
     NNVFA vfa;
     Policy testPolicy;
     Environment env;
+    ActionSet actionSet;
 
     int maxEpisodeFrames = 10000;
     int totalTrainingFrames = 10000000;
@@ -25,14 +37,23 @@ public class TrainingHelper {
     int testInterval = 100000;
     int numTestEpisodes = 10;
 
+
+    List<State> sampleStates;
+    int numSampleStates = -1;
+
     String snapshotFileName;
     int snapshotInterval = -1;
 
-    public TrainingHelper(DeepQLearner learner, NNVFA vfa, Policy testPolicy, Environment env) {
+    public TrainingHelper(DeepQLearner learner, NNVFA vfa, Policy testPolicy, ActionSet actionSet, Environment env) {
         this.learner = learner;
         this.vfa = vfa;
         this.testPolicy = testPolicy;
         this.env = env;
+        this.actionSet = actionSet;
+    }
+
+    public void setNumSampleStates(int n) {
+        numSampleStates = n;
     }
 
     public void setTotalTrainingFrames(int n) {
@@ -53,6 +74,25 @@ public class TrainingHelper {
     }
 
     public void run() {
+        if (numSampleStates > 0) {
+            // Take a random sample of states
+            // TODO: change to init with actionList when fixed
+            Policy randomPolicy = new RandomPolicy((new GridWorldDomain(11, 11)).generateDomain());
+            sampleStates = new ArrayList<>(numSampleStates);
+
+            while (sampleStates.size() < numSampleStates) {
+                // Run a random episode
+                EpisodeAnalysis ea = runEpisode(randomPolicy);
+                int episodeSize = ea.numTimeSteps();
+
+                // Random sample of unique states from the episode
+                Random rng = new Random();
+                int numStatesToAdd = Math.min(episodeSize, numSampleStates - sampleStates.size());
+                for (int i = 0; i < numStatesToAdd; i++) {
+                    sampleStates.add(ea.getState(rng.nextInt(episodeSize)));
+                }
+            }
+        }
 
         int frameCounter = 0;
         int episode = 0;
@@ -72,19 +112,17 @@ public class TrainingHelper {
             System.out.println(String.format("Episode reward: %.2f", totalReward));
             System.out.println();
 
+            testCountDown -= ea.numTimeSteps();
             if (testCountDown <= 0) {
                 runTestSet();
                 testCountDown += testInterval;
-            } else {
-                testCountDown -= ea.numTimeSteps();
             }
 
             if (snapshotInterval > 0) {
+                snapshotCountDown -= ea.numTimeSteps();
                 if (snapshotCountDown == 0) {
                     vfa.saveWeightsTo(snapshotFileName);
                     testCountDown += snapshotInterval;
-                } else {
-                    snapshotCountDown -= ea.numTimeSteps();
                 }
             }
 
@@ -96,10 +134,24 @@ public class TrainingHelper {
     }
 
     private void runTestSet() {
+
+        // Test the MaxQValues of the sample states
+        if (sampleStates != null) {
+            double totalMaxQ = 0;
+            for (State state : sampleStates) {
+                totalMaxQ += vfa.qValuesForState(state).maxNumber().doubleValue();
+            }
+
+            double averageMaxQ = totalMaxQ/numSampleStates;
+            System.out.println(String.format("Average Max Q-Value for sample states: %.3f", averageMaxQ));
+        }
+
+
+        // Run the test policy on test episodes
         System.out.println("Running Test Set...");
         double totalTestReward = 0;
         for (int e = 1; e <= numTestEpisodes; e++) {
-            EpisodeAnalysis ea = runTestEpisode();
+            EpisodeAnalysis ea = runEpisode(testPolicy);
 
             double totalReward = 0;
             for (double reward : ea.rewardSequence) {
@@ -114,14 +166,14 @@ public class TrainingHelper {
         System.out.println();
     }
 
-    private EpisodeAnalysis runTestEpisode() {
+    private EpisodeAnalysis runEpisode(Policy policy) {
         env.resetEnvironment();
         EpisodeAnalysis ea = new EpisodeAnalysis();
 
         int eFrameCounter = 0;
         while(!env.isInTerminalState() && (eFrameCounter < maxEpisodeFrames || maxEpisodeFrames == -1)){
             State curState = env.getCurrentObservation();
-            GroundedAction action = (GroundedAction)testPolicy.getAction(curState);
+            GroundedAction action = (GroundedAction)policy.getAction(curState);
 
             EnvironmentOutcome eo = action.executeIn(env);
             ea.recordTransitionTo(eo.a, eo.op, eo.r);

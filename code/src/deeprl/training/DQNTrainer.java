@@ -43,10 +43,11 @@ public class DQNTrainer {
         Policy testPolicy = new EpsilonGreedy(dqn, 0.05);
 
         // setup helper
-        TrainingHelper helper = new TrainingHelper(deepQLearner, dqn, testPolicy, env);
+        TrainingHelper helper = new TrainingHelper(deepQLearner, dqn, testPolicy, actionSet, env);
         helper.setTotalTrainingFrames(10000000);
-        helper.setTestInterval(100000);
+        helper.setTestInterval(50000);
         helper.setNumTestEpisodes(10);
+        helper.setNumSampleStates(1000);
         helper.setSnapshots("dqnPongSnapshot", 100000);
 
         // run helper

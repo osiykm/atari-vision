@@ -80,16 +80,17 @@ public class RunAgents {
                 doneParsing = true;
         }
 
+        String rom = "space_invaders.bin";
+
         // select agent
         if (agentName.equals("human")) {
             // use the ALE human agent
-            AbstractAgent agent = new HumanAgent();
+            AbstractAgent agent = new HumanAgent(rom);
             agent.run();
         } else {
             // use BURLAP agent
 
             BurlapAgent agent;
-            String rom = "space_invaders.bin";
 
             if (agentName.equals("naive")) {
                 SIDomainGenerator domGen = new SIDomainGenerator();
