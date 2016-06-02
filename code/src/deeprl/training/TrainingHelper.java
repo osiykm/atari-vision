@@ -120,7 +120,7 @@ public class TrainingHelper {
 
             if (snapshotInterval > 0) {
                 snapshotCountDown -= ea.numTimeSteps();
-                if (snapshotCountDown == 0) {
+                if (snapshotCountDown <= 0) {
                     vfa.saveWeightsTo(snapshotFileName);
                     testCountDown += snapshotInterval;
                 }

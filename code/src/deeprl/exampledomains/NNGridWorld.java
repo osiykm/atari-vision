@@ -2,6 +2,7 @@ package deeprl.exampledomains;
 
 import ale.io.ActionSet;
 import burlap.behavior.policy.EpsilonGreedy;
+import burlap.behavior.policy.GreedyQPolicy;
 import burlap.behavior.policy.Policy;
 import burlap.behavior.singleagent.vfa.ParametricFunction;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
@@ -36,10 +37,15 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+import java.io.File;
+
 /**
  * Created by MelRod on 5/29/16.
  */
 public class NNGridWorld extends NNVFA {
+
+    private static final String snapshotFileName = "nnGridWorldSnapshot";
+    private static final boolean gui = false;
 
     static ActionSet actionSet = new ActionSet(new String[]{
             GridWorldDomain.ACTIONNORTH,
@@ -150,9 +156,17 @@ public class NNGridWorld extends NNVFA {
 
         NNGridWorld nnGridWorld = new NNGridWorld();
 
-        VisualExplorer exp = new VisualExplorer(nnGridWorld.domain, nnGridWorld.env, GridWorldVisualizer.getVisualizer(nnGridWorld.gwdg.getMap()));
-        exp.initGUI();
-        exp.startLiveStatePolling(10);
+        // Load snapshot if exists
+        File f = new File(snapshotFileName + ".bin");
+        if (f.exists() && !f.isDirectory()) {
+            nnGridWorld.setWeightsFrom(snapshotFileName);
+        }
+
+        if (gui) {
+            VisualExplorer exp = new VisualExplorer(nnGridWorld.domain, nnGridWorld.env, GridWorldVisualizer.getVisualizer(nnGridWorld.gwdg.getMap()));
+            exp.initGUI();
+            exp.startLiveStatePolling(10);
+        }
 
 
         Policy policy = new AnnealedEpsilonGreedy(nnGridWorld, 1.0, 0.1, 1000000);
@@ -168,6 +182,7 @@ public class NNGridWorld extends NNVFA {
         helper.setTestInterval(100000);
         helper.setNumTestEpisodes(10);
         helper.setNumSampleStates(1000);
+        helper.setSnapshots(snapshotFileName, 50000);
 
         // run helper
         helper.run();

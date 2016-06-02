@@ -16,12 +16,15 @@ import deeprl.policies.AnnealedEpsilonGreedy;
 import deeprl.preprocess.DQNPreProcessor;
 import deeprl.vfa.DQN;
 
+import java.io.File;
+
 /**
  * Created by MelRod on 5/31/16.
  */
 public class DQNTrainer {
 
     private static final String rom = "pong.bin";
+    private static final String snapshotFileName = "dqnPongSnapshot";
 
     public static void main(String[] args) {
         ALEDomainGenerator domGen = new ALEDomainGenerator();
@@ -37,6 +40,12 @@ public class DQNTrainer {
         DQN dqn = new DQN(actionSet, gamma);
         Policy policy = new AnnealedEpsilonGreedy(dqn, 1.0, 0.1, 1000000);
 
+        // Load snapshot if exists
+        File f = new File(snapshotFileName + ".bin");
+        if (f.exists() && !f.isDirectory()) {
+            dqn.setWeightsFrom(snapshotFileName);
+        }
+
         DeepQLearner deepQLearner = new DeepQLearner(domain, 0.99, policy, dqn);
         deepQLearner.setExperienceReplay(new FixedSizeMemory(1000000), 32);
 
@@ -48,7 +57,7 @@ public class DQNTrainer {
         helper.setTestInterval(50000);
         helper.setNumTestEpisodes(10);
         helper.setNumSampleStates(1000);
-        helper.setSnapshots("dqnPongSnapshot", 100000);
+        helper.setSnapshots(snapshotFileName, 100000);
 
         // run helper
         helper.run();
