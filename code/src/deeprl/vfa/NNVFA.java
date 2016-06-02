@@ -19,6 +19,7 @@ import org.deeplearning4j.nn.api.Updater;
 import org.deeplearning4j.nn.gradient.Gradient;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.updater.UpdaterCreator;
+import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.api.StepFunction;
 import org.deeplearning4j.optimize.stepfunctions.NegativeGradientStepFunction;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -129,6 +130,10 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
         INDArray params = model.params();
         stepFunction.step(params,gradient.gradient());
         model.setParams(params);    //params() may not be in-place
+
+        // update iteration listeners
+        for(IterationListener listener : model.getListeners())
+            listener.iterationDone(model, 0);
     }
 
     public INDArray qValuesForState(State state) {

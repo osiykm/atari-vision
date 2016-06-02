@@ -44,8 +44,8 @@ import java.io.File;
  */
 public class NNGridWorld extends NNVFA {
 
-    private static final String snapshotFileName = "nnGridWorldSnapshot";
-    private static final boolean gui = false;
+    static final String SNAPSHOT_FILE_NAME = "nnGridWorldSnapshot";
+    static final boolean GUI = false;
 
     static ActionSet actionSet = new ActionSet(new String[]{
             GridWorldDomain.ACTIONNORTH,
@@ -156,13 +156,7 @@ public class NNGridWorld extends NNVFA {
 
         NNGridWorld nnGridWorld = new NNGridWorld();
 
-        // Load snapshot if exists
-        File f = new File(snapshotFileName + ".bin");
-        if (f.exists() && !f.isDirectory()) {
-            nnGridWorld.setWeightsFrom(snapshotFileName);
-        }
-
-        if (gui) {
+        if (GUI) {
             VisualExplorer exp = new VisualExplorer(nnGridWorld.domain, nnGridWorld.env, GridWorldVisualizer.getVisualizer(nnGridWorld.gwdg.getMap()));
             exp.initGUI();
             exp.startLiveStatePolling(10);
@@ -182,7 +176,7 @@ public class NNGridWorld extends NNVFA {
         helper.setTestInterval(100000);
         helper.setNumTestEpisodes(10);
         helper.setNumSampleStates(1000);
-        helper.setSnapshots(snapshotFileName, 50000);
+        helper.setSnapshots(SNAPSHOT_FILE_NAME, 50000);
 
         // run helper
         helper.run();

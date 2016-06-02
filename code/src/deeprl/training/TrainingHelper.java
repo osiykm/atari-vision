@@ -133,7 +133,7 @@ public class TrainingHelper {
         System.out.println("Done Training!");
     }
 
-    private void runTestSet() {
+    public void runTestSet() {
 
         // Test the MaxQValues of the sample states
         if (sampleStates != null) {
@@ -166,7 +166,7 @@ public class TrainingHelper {
         System.out.println();
     }
 
-    private EpisodeAnalysis runEpisode(Policy policy) {
+    public EpisodeAnalysis runEpisode(Policy policy) {
         env.resetEnvironment();
         EpisodeAnalysis ea = new EpisodeAnalysis();
 

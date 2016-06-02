@@ -40,12 +40,6 @@ public class DQNTrainer {
         DQN dqn = new DQN(actionSet, gamma);
         Policy policy = new AnnealedEpsilonGreedy(dqn, 1.0, 0.1, 1000000);
 
-        // Load snapshot if exists
-        File f = new File(snapshotFileName + ".bin");
-        if (f.exists() && !f.isDirectory()) {
-            dqn.setWeightsFrom(snapshotFileName);
-        }
-
         DeepQLearner deepQLearner = new DeepQLearner(domain, 0.99, policy, dqn);
         deepQLearner.setExperienceReplay(new FixedSizeMemory(1000000), 32);
 
