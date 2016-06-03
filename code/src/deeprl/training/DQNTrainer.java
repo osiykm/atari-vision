@@ -23,8 +23,9 @@ import java.io.File;
  */
 public class DQNTrainer {
 
-    private static final String rom = "pong.bin";
-    private static final String snapshotFileName = "dqnPongSnapshot";
+    private static final String ROM = "pong.bin";
+    private static final String SNAPSHOT_FILE_NAME = "dqnPongSnapshot";
+    private static final boolean GUI = true;
 
     public static void main(String[] args) {
         ALEDomainGenerator domGen = new ALEDomainGenerator();
@@ -32,7 +33,7 @@ public class DQNTrainer {
         NNState initialState = new NHistoryState(4, new DQNPreProcessor());
 
         int k = 4;
-        ALEEnvironment env = new ALEKSkipEnvironment(domain, initialState, k, rom, true);
+        ALEEnvironment env = new ALEKSkipEnvironment(domain, initialState, k, ROM, GUI);
 
         double gamma = 0.99;
         ActionSet actionSet = Actions.pongActionSet();
@@ -51,7 +52,7 @@ public class DQNTrainer {
         helper.setTestInterval(50000);
         helper.setNumTestEpisodes(10);
         helper.setNumSampleStates(1000);
-        helper.setSnapshots(snapshotFileName, 100000);
+        helper.setSnapshots(SNAPSHOT_FILE_NAME, 100000);
 
         // run helper
         helper.run();

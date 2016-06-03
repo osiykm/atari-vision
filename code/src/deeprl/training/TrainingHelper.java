@@ -75,9 +75,10 @@ public class TrainingHelper {
 
     public void run() {
         if (numSampleStates > 0) {
+            System.out.println("Sampling random states");
+
             // Take a random sample of states
-            // TODO: change to init with actionList when fixed
-            Policy randomPolicy = new RandomPolicy((new GridWorldDomain(11, 11)).generateDomain());
+            Policy randomPolicy = new RandomPolicy(actionSet.actionList());
             sampleStates = new ArrayList<>(numSampleStates);
 
             while (sampleStates.size() < numSampleStates) {

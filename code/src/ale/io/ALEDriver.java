@@ -13,6 +13,7 @@ public class ALEDriver {
 
     static final String ALE_FILE = "./ale";
     static final String ROM_DIR = "roms/";
+    static final String ALE_ERROR_FILE = "ale_err.txt";
 
     protected Process process;
 
@@ -54,7 +55,8 @@ public class ALEDriver {
         ProcessBuilder pb = new ProcessBuilder(
                 ALE_FILE,
                 "-game_controller", "fifo",
-                (new File(ROM_DIR, rom)).getPath());
+                (new File(ROM_DIR, rom)).getPath())
+                .redirectError(new File(ALE_ERROR_FILE));
 
         try {
             process = pb.start();

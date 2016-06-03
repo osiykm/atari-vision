@@ -33,7 +33,7 @@ public class HumanAgent extends AbstractAgent {
     /** The object used to save frames to the disk */
     protected MovieGenerator movieGenerator;
     ScreenConverter screenConverter;
-    String movieOutputFile = "./movies/human/atari_";
+    String movieOutputFile = null;// "./movies/human/atari_";
 
     /** Variables to enforce 60 frames per second */
     protected long lastFrameTime;
