@@ -23,11 +23,3 @@ In IntelliJ: creat a new "Project from Existing Sources," select the folder, sel
 ### Running
 
 The project can be run and compiled through IntelliJ or Eclipse
-
-
-### OpenCV
-
-Some parts of the code require OpenCV. To run this code, the OpenCV native library must also be added to the java.library.path:
-
-
-
