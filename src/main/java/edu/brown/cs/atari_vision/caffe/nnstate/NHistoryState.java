@@ -1,25 +1,22 @@
-package edu.brown.cs.atari_vision.deeprl.nnstate;
+package edu.brown.cs.atari_vision.caffe.nnstate;
 
 import burlap.mdp.core.Domain;
 import burlap.mdp.core.state.State;
 import edu.brown.cs.atari_vision.ale.burlap.ALEState;
-import edu.brown.cs.atari_vision.deeprl.preprocess.PreProcessor;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
+import edu.brown.cs.atari_vision.caffe.preprocess.PreProcessor;
+import org.bytedeco.javacpp.FloatPointer;
 
+import static org.bytedeco.javacpp.caffe.*;
+import static org.bytedeco.javacpp.opencv_core.*;
 
-import org.bytedeco.javacpp.opencv_core.*;
-import org.nd4j.linalg.indexing.INDArrayIndex;
-import org.nd4j.linalg.indexing.NDArrayIndex;
-
-import java.util.*;
+import java.util.List;
 
 /**
  * Created by MelRod on 5/27/16.
  */
 public class NHistoryState implements NNState {
 
-    private INDArray frameHistory;
+    private FloatPointer frameHistory;
     private PreProcessor preProcessor;
     private int n; // the history size
 
@@ -32,29 +29,28 @@ public class NHistoryState implements NNState {
         this.n = n;
         this.preProcessor = preProcessor;
 
-        int frameSize = preProcessor.outputSize();
-        this.frameHistory = Nd4j.zeros(1, frameSize*n);
+        int outputSize = preProcessor.outputSize();
+        this.frameHistory = (new FloatPointer(n * outputSize)).fill(0);
     }
 
     @Override
-    public INDArray getInput() {
-        return frameHistory;
+    public FloatBlob getInput() {
+        return new FloatBlob(frameHistory);
     }
 
     @Override
     public ALEState updateStateWithScreen(Domain domain, Mat newScreen) {
 
-        int frameSize = preProcessor.outputSize();
+        int outputSize = preProcessor.outputSize();
 
         // Create new input list
-        INDArray newFrameHistory = Nd4j.zeros(frameHistory.shape());
+        FloatPointer newFrameHistory = new FloatPointer(n * outputSize);
 
         // Process the new input
-        newFrameHistory.put(new INDArrayIndex[]{NDArrayIndex.interval(0, frameSize)}, preProcessor.convertScreenToInput(newScreen));
+        newFrameHistory.position(0).put(preProcessor.convertScreenToInput(newScreen).limit(outputSize));
 
         // Add history
-        newFrameHistory.put(new INDArrayIndex[]{NDArrayIndex.interval(frameSize, n*frameSize)},
-                frameHistory.get(new INDArrayIndex[]{NDArrayIndex.interval(0, frameSize*(n-1))}));
+        newFrameHistory.position(0).put(frameHistory.position(0).limit((n - 1)*outputSize));
 
         // Create new state
         NHistoryState newState = new NHistoryState(this);

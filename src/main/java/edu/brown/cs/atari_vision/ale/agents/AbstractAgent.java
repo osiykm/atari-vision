@@ -23,7 +23,6 @@ import edu.brown.cs.atari_vision.ale.io.ALEDriver;
 import edu.brown.cs.atari_vision.ale.io.Actions;
 import edu.brown.cs.atari_vision.ale.io.ConsoleRAM;
 import edu.brown.cs.atari_vision.ale.io.RLData;
-import edu.brown.cs.atari_vision.ale.screen.ScreenMatrix;
 import org.bytedeco.javacpp.opencv_core.*;
 
 import java.io.IOException;

@@ -3,7 +3,6 @@ package edu.brown.cs.atari_vision.ale.io;
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainConstants;
 import edu.brown.cs.atari_vision.ale.screen.ColorPalette;
 import edu.brown.cs.atari_vision.ale.screen.NTSCPalette;
-import edu.brown.cs.atari_vision.ale.screen.ScreenMatrix;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.Pointer;
 import org.bytedeco.javacpp.opencv_core.*;

@@ -1,7 +1,6 @@
 package edu.brown.cs.atari_vision.ale.burlap;
 
 import burlap.mdp.core.Domain;
-import edu.brown.cs.atari_vision.ale.screen.ScreenMatrix;
 import org.bytedeco.javacpp.opencv_core.*;
 
 import java.util.*;

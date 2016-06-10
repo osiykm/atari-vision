@@ -12,7 +12,6 @@ import edu.brown.cs.atari_vision.ale.io.RLData;
 import edu.brown.cs.atari_vision.ale.movie.MovieGenerator;
 import edu.brown.cs.atari_vision.ale.screen.NTSCPalette;
 import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;
-import edu.brown.cs.atari_vision.ale.screen.ScreenMatrix;
 import org.bytedeco.javacpp.opencv_core.*;
 
 import java.io.IOException;

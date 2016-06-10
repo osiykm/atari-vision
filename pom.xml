@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>edu.brown.cs.atari-vision</groupId>
-    <artifactId>dl4burlap</artifactId>
+    <artifactId>atari-vision</artifactId>
     <version>0.0.0-SNAPSHOT</version>
     <build>
         <plugins>
@@ -63,9 +63,19 @@
         </dependency>
 
         <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacpp</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.bytedeco.javacpp-presets</groupId>
             <artifactId>opencv</artifactId>
             <version>3.1.0-1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco.javacpp-presets</groupId>
+            <artifactId>caffe</artifactId>
+            <version>rc3-1.2</version>
         </dependency>
 
         <dependency>
