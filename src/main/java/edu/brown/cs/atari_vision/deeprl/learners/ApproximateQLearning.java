@@ -148,7 +148,7 @@ public abstract class ApproximateQLearning extends MDPSolver implements Learning
 			int stepInc = eo instanceof EnvironmentOptionOutcome ? ((EnvironmentOptionOutcome)eo).numSteps() : 1;
 			eStepCounter += stepInc;
 			this.totalSteps += stepInc;
-			ea.recordTransitionTo(a, eo.op, eo.r);
+			ea.transition(a, eo.op, eo.r);
 
 			//perform learners
 			List<EnvironmentOutcome> samples = this.memory.sampleExperiences(this.numReplay);

@@ -7,6 +7,10 @@
     <groupId>edu.brown.cs.atari-vision</groupId>
     <artifactId>atari-vision</artifactId>
     <version>0.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>atari-vision</name>
+
     <build>
         <plugins>
             <plugin>
@@ -16,6 +20,30 @@
                     <source>1.7</source>
                     <target>1.7</target>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2-beta-4</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>edu.brown.cs.atari_vision.caffe.exampledomains.NNGridWorld</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -29,9 +57,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <shadedClassifier>bin</shadedClassifier>
         <java.version>1.8</java.version>
-        <nd4j.version>0.4-rc3.11-SNAPSHOT</nd4j.version>
-        <dl4j.version>0.4-rc3.11-SNAPSHOT</dl4j.version>
-        <canova.version>0.0.0.17-SNAPSHOT</canova.version>
+        <nd4j.version>0.4-rc3.10</nd4j.version>
+        <dl4j.version>0.4-rc3.10</dl4j.version>
+        <canova.version>0.0.0.16</canova.version>
         <guava.version>19.0</guava.version>
         <jfreechart.version>1.0.13</jfreechart.version>
         <maven-shade-plugin.version>2.4.3</maven-shade-plugin.version>
@@ -71,6 +99,11 @@
             <groupId>org.bytedeco.javacpp-presets</groupId>
             <artifactId>opencv</artifactId>
             <version>3.1.0-1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv</artifactId>
+            <version>1.2</version>
         </dependency>
         <dependency>
             <groupId>org.bytedeco.javacpp-presets</groupId>
@@ -126,6 +159,5 @@
         </dependency>
 
     </dependencies>
-
 
 </project>

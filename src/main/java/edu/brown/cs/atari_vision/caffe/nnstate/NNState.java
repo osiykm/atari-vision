@@ -1,6 +1,7 @@
 package edu.brown.cs.atari_vision.caffe.nnstate;
 
 import edu.brown.cs.atari_vision.ale.burlap.ALEState;
+import org.bytedeco.javacpp.FloatPointer;
 
 import static org.bytedeco.javacpp.caffe.*;
 
@@ -9,5 +10,5 @@ import static org.bytedeco.javacpp.caffe.*;
  */
 public interface NNState extends ALEState {
 
-    public FloatBlob getInput();
+    public FloatPointer getInput();
 }

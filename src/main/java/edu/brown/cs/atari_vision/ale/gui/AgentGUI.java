@@ -18,9 +18,7 @@
 package edu.brown.cs.atari_vision.ale.gui;
 
 import edu.brown.cs.atari_vision.ale.screen.ColorPalette;
-import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;
 import org.bytedeco.javacpp.opencv_core.*;
-import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 

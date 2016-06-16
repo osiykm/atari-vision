@@ -10,7 +10,9 @@ import edu.brown.cs.atari_vision.ale.burlap.ALEEnvironment;
 import edu.brown.cs.atari_vision.caffe.nnstate.NHistoryState;
 import edu.brown.cs.atari_vision.caffe.nnstate.NNState;
 import edu.brown.cs.atari_vision.caffe.preprocess.DQNPreProcessor;
-import org.nd4j.linalg.api.ndarray.INDArray;
+import org.bytedeco.javacpp.FloatPointer;
+
+import static org.bytedeco.javacpp.opencv_core.*;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -33,45 +35,21 @@ public class test {
         NNState initialState = new NHistoryState(4, new DQNPreProcessor());
 
         Policy policy = new RandomPolicy(domain);
-        ALEEnvironment env = new ALEEnvironment(domain, initialState, rom, true);
+        ALEEnvironment env = new ALEEnvironment(domain, initialState, rom, true, true);
 
         runFrames(100, policy, env);
     }
 
     static void runFrames(int frames, Policy policy, ALEEnvironment env) {
-//        for (int i = 0; i < frames; i++) {
-//            State curState = env.currentObservation();
-//            Action action = policy.action(curState);
-//
-//            env.executeAction(action);
-//        }
-//
-//        Mat input = ((NNState)env.currentObservation()).getInput();
-//        saveInputAsImage(input);
-//
-//        env.die();
-    }
+        for (int i = 0; i < frames; i++) {
+            State curState = env.currentObservation();
+            Action action = policy.action(curState);
 
-    static void saveInputAsImage(INDArray input) {
-        int rows = 84;
-        int cols = 84;
-
-        BufferedImage img = new BufferedImage(rows, cols, BufferedImage.TYPE_INT_RGB);
-
-        // Map each pixel
-        for (int x = 0; x < cols; x++) {
-            for (int y = 0; y < rows; y++) {
-                int gray = input.getInt(0, (y*cols) + x);
-                Color c = new Color(gray, gray, gray);
-                img.setRGB(x, y, c.getRGB());
-            }
+            env.executeAction(action);
         }
 
-        File outputfile = new File("screen.png");
-        try {
-            ImageIO.write(img, "png", outputfile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        FloatPointer input = ((NNState)env.currentObservation()).getInput();
+
+        env.die();
     }
 }

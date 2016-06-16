@@ -39,7 +39,7 @@ public class NaiveSIPolicy implements Policy {
         leftAction = new SimpleAction("player_a_left");
         leftFireAction = new SimpleAction("player_a_leftfire");
 
-        vertAlignPF = domain.getPropFunction(ALEDomainConstants.PFVertAlign);
+        vertAlignPF = domain.propFunction(ALEDomainConstants.PFVertAlign);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class NaiveSIPolicy implements Policy {
 
         // check whether or not there is an alien overhead
         boolean hasVertAlign = false;
-        List<GroundedProp> gps = vertAlignPF.getAllGroundedPropsForState(s);
+        List<GroundedProp> gps = vertAlignPF.allGroundings(state);
         for(GroundedProp gp : gps) {
             if (gp.isTrue(state)) {
                 hasVertAlign = true;

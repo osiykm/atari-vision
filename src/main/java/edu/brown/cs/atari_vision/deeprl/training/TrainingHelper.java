@@ -85,7 +85,7 @@ public class TrainingHelper {
                 Random rng = new Random();
                 int numStatesToAdd = Math.min(episodeSize, numSampleStates - sampleStates.size());
                 for (int i = 0; i < numStatesToAdd; i++) {
-                    sampleStates.add(ea.getState(rng.nextInt(episodeSize)));
+                    sampleStates.add(ea.state(rng.nextInt(episodeSize)));
                 }
             }
 
@@ -178,7 +178,7 @@ public class TrainingHelper {
             Action action = policy.action(curState);
 
             EnvironmentOutcome eo = env.executeAction(action);
-            ea.recordTransitionTo(eo.a, eo.op, eo.r);
+            ea.transition(eo.a, eo.op, eo.r);
 
             eFrameCounter++;
         }

@@ -1,8 +1,6 @@
 package edu.brown.cs.atari_vision.spaceinvaders.cv;
 
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainConstants;
-import edu.brown.cs.atari_vision.ale.screen.NTSCPalette;
-import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;
 
 import static org.bytedeco.javacpp.opencv_core.*;
 import static org.bytedeco.javacpp.opencv_imgproc.*;

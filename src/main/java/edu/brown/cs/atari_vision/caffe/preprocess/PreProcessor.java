@@ -1,5 +1,7 @@
 package edu.brown.cs.atari_vision.caffe.preprocess;
 
+import org.bytedeco.javacpp.FloatPointer;
+
 import static org.bytedeco.javacpp.caffe.*;
 import static org.bytedeco.javacpp.opencv_core.*;
 
@@ -8,6 +10,6 @@ import static org.bytedeco.javacpp.opencv_core.*;
  */
 public interface PreProcessor {
 
-    public FloatBlob convertScreenToInput(Mat screen);
+    public FloatPointer convertScreenToInput(Mat screen);
     public int outputSize();
 }

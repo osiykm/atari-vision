@@ -21,7 +21,6 @@ import edu.brown.cs.atari_vision.ale.io.ConsoleRAM;
 import edu.brown.cs.atari_vision.ale.io.RLData;
 import edu.brown.cs.atari_vision.ale.movie.MovieGenerator;
 import edu.brown.cs.atari_vision.ale.screen.NTSCPalette;
-import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;
 import org.bytedeco.javacpp.opencv_core.*;
 
 /** An 'agent' meant to be controlled by a human. Used to play the game and
@@ -133,7 +132,8 @@ public class HumanAgent extends AbstractAgent {
 
         // Save screen capture
         if (movieGenerator != null) {
-            movieGenerator.record(ScreenConverter.convert(screen));
+            //TODO: implement
+//            movieGenerator.record(ScreenConverter.convert(screen));
         }
     }
 

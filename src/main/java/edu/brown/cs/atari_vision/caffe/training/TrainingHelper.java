@@ -1,13 +1,18 @@
 package edu.brown.cs.atari_vision.caffe.training;
 
+import burlap.behavior.policy.GreedyQPolicy;
 import burlap.behavior.policy.Policy;
 import burlap.behavior.policy.RandomPolicy;
 import burlap.behavior.singleagent.Episode;
+import burlap.behavior.singleagent.auxiliary.StateReachability;
+import burlap.behavior.singleagent.auxiliary.valuefunctionvis.ValueFunctionVisualizerGUI;
+import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.mdp.core.Action;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.environment.Environment;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
 import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
+import edu.brown.cs.atari_vision.caffe.exampledomains.NNGridWorld;
 import edu.brown.cs.atari_vision.caffe.learners.DeepQLearner;
 import edu.brown.cs.atari_vision.caffe.vfa.NNVFA;
 import org.bytedeco.javacpp.FloatPointer;
@@ -88,7 +93,7 @@ public class TrainingHelper {
                 Random rng = new Random();
                 int numStatesToAdd = Math.min(episodeSize, numSampleStates - sampleStates.size());
                 for (int i = 0; i < numStatesToAdd; i++) {
-                    sampleStates.add(ea.getState(rng.nextInt(episodeSize)));
+                    sampleStates.add(ea.state(rng.nextInt(episodeSize)));
                 }
             }
 
@@ -123,7 +128,7 @@ public class TrainingHelper {
                 snapshotCountDown -= ea.numTimeSteps();
                 if (snapshotCountDown <= 0) {
                     vfa.saveWeightsTo(snapshotFileName);
-                    testCountDown += snapshotInterval;
+                    snapshotCountDown += snapshotInterval;
                 }
             }
 
@@ -137,8 +142,8 @@ public class TrainingHelper {
     public void querySampleQs() {
         double totalMaxQ = 0;
         for (State state : sampleStates) {
-            FloatBlobVector qVals = vfa.qValuesForState(state);
-            totalMaxQ += vfa.blobMax(new FloatPointer(qVals));
+            FloatBlob qVals = vfa.qValuesForState(state);
+            totalMaxQ += vfa.blobMax(qVals, 0);
         }
 
         double averageMaxQ = totalMaxQ/numSampleStates;
@@ -182,7 +187,7 @@ public class TrainingHelper {
             Action action = policy.action(curState);
 
             EnvironmentOutcome eo = env.executeAction(action);
-            ea.recordTransitionTo(eo.a, eo.op, eo.r);
+            ea.transition(eo.a, eo.op, eo.r);
 
             eFrameCounter++;
         }

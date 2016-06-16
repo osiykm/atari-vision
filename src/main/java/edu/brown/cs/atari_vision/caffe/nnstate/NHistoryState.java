@@ -4,6 +4,7 @@ import burlap.mdp.core.Domain;
 import burlap.mdp.core.state.State;
 import edu.brown.cs.atari_vision.ale.burlap.ALEState;
 import edu.brown.cs.atari_vision.caffe.preprocess.PreProcessor;
+import edu.brown.cs.atari_vision.caffe.vfa.NNVFA;
 import org.bytedeco.javacpp.FloatPointer;
 
 import static org.bytedeco.javacpp.caffe.*;
@@ -34,8 +35,8 @@ public class NHistoryState implements NNState {
     }
 
     @Override
-    public FloatBlob getInput() {
-        return new FloatBlob(frameHistory);
+    public FloatPointer getInput() {
+        return frameHistory;
     }
 
     @Override
@@ -47,10 +48,11 @@ public class NHistoryState implements NNState {
         FloatPointer newFrameHistory = new FloatPointer(n * outputSize);
 
         // Process the new input
-        newFrameHistory.position(0).put(preProcessor.convertScreenToInput(newScreen).limit(outputSize));
+        FloatPointer newInput = preProcessor.convertScreenToInput(newScreen).limit(outputSize);
+        newFrameHistory.position(0).put(newInput);
 
         // Add history
-        newFrameHistory.position(0).put(frameHistory.position(0).limit((n - 1)*outputSize));
+        newFrameHistory.position(outputSize).put(frameHistory.position(0).limit((n - 1)*outputSize));
 
         // Create new state
         NHistoryState newState = new NHistoryState(this);

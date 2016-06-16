@@ -30,7 +30,7 @@ public class DQNTrainer {
         NNState initialState = new NHistoryState(4, new DQNPreProcessor());
 
         int k = 4;
-        ALEEnvironment env = new ALEEnvironment(domain, initialState, ROM, k, GUI);
+        ALEEnvironment env = new ALEEnvironment(domain, initialState, ROM, k, true, GUI);
 
         double gamma = 0.99;
         ActionSet actionSet = Actions.pongActionSet();

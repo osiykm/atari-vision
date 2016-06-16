@@ -47,7 +47,7 @@ import org.nd4j.linalg.factory.Nd4j;
 public class NNGridWorld extends NNVFA {
 
     static final String SNAPSHOT_FILE_NAME = "nnGridWorldSnapshot";
-    static final boolean GUI = true;
+    static final boolean GUI = false;
 
     static ActionSet actionSet = new ActionSet(new String[]{
             GridWorldDomain.ACTION_NORTH,
@@ -71,7 +71,7 @@ public class NNGridWorld extends NNVFA {
         gwdg = new GridWorldDomain(11, 11);
         gwdg.setMapToFourRooms();
         rf = new UniformCostRF();
-        tf = new SinglePFTF(PropositionalFunction.getPropositionalFunction(gwdg.generatePfs(), GridWorldDomain.PF_AT_LOCATION));
+        tf = new SinglePFTF(PropositionalFunction.findPF(gwdg.generatePfs(), GridWorldDomain.PF_AT_LOCATION));
         gwdg.setRf(rf);
         gwdg.setTf(tf);
         domain = gwdg.generateDomain();
@@ -166,7 +166,7 @@ public class NNGridWorld extends NNVFA {
         if (GUI) {
             VisualExplorer exp = new VisualExplorer(nnGridWorld.domain, nnGridWorld.env, GridWorldVisualizer.getVisualizer(nnGridWorld.gwdg.getMap()));
             exp.initGUI();
-            exp.startLiveStatePolling(10);
+            exp.startLiveStatePolling(33);
         }
 
 

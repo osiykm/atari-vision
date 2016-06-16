@@ -1,6 +1,5 @@
 package edu.brown.cs.atari_vision.spaceinvaders.cv;
 
-import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;
 import static org.bytedeco.javacpp.opencv_core.*;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 
@@ -12,7 +11,6 @@ import java.util.List;
  */
 public class ContourFinder {
     /** Object for converting ScreenMatrix to OpenCV Mat. */
-    private ScreenConverter screenConverter;
 
     private final boolean DRAW_RECTS = false;
 
@@ -23,7 +21,6 @@ public class ContourFinder {
     private final double threshBias = 1.0;
 
     public ContourFinder() {
-        screenConverter = new ScreenConverter();
     }
 
     public List<Point> findSprites(Mat screen) {

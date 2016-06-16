@@ -37,7 +37,7 @@ public class test {
         NNState initialState = new NHistoryState(4, new DQNPreProcessor());
 
         Policy policy = new RandomPolicy(domain);
-        ALEEnvironment env = new ALEEnvironment(domain, initialState, rom, true);
+        ALEEnvironment env = new ALEEnvironment(domain, initialState, rom, true, true);
 
         runFrames(100, policy, env);
     }

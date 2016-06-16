@@ -11,7 +11,6 @@ import edu.brown.cs.atari_vision.ale.io.Actions;
 import edu.brown.cs.atari_vision.ale.io.RLData;
 import edu.brown.cs.atari_vision.ale.movie.MovieGenerator;
 import edu.brown.cs.atari_vision.ale.screen.NTSCPalette;
-import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;
 import org.bytedeco.javacpp.opencv_core.*;
 
 import java.io.IOException;
@@ -31,22 +30,25 @@ public class ALEEnvironment implements Environment {
 
     /** State data **/
     Domain domain;
+    private ALEState initialState;
     private ALEState currentState;
     private int lastReward;
     private boolean isTerminal;
 
     /** Parameters */
-    /** Whether to use a GUI */
+    private boolean normalizeReward;
     private boolean useGUI;
     private String rom;
 
-    public ALEEnvironment(Domain domain, ALEState initialState, String rom, boolean useGUI) {
+    public ALEEnvironment(Domain domain, ALEState initialState, String rom, boolean normalizeReward, boolean useGUI) {
         this.rom = rom;
         this.useGUI = useGUI;
         if (this.useGUI) {
             // Create the GUI
             ui = new AgentGUI();
         }
+
+        this.normalizeReward = normalizeReward;
 
         // Create the relevant I/O objects
         initIO(1);
@@ -57,7 +59,7 @@ public class ALEEnvironment implements Environment {
         updateState();
     }
 
-    public ALEEnvironment(Domain domain, ALEState initialState, String rom, int frameSkip, boolean useGUI) {
+    public ALEEnvironment(Domain domain, ALEState initialState, String rom, int frameSkip, boolean normalizeReward, boolean useGUI) {
         this.rom = rom;
         this.useGUI = useGUI;
         if (this.useGUI) {
@@ -65,11 +67,14 @@ public class ALEEnvironment implements Environment {
             ui = new AgentGUI();
         }
 
+        this.normalizeReward = normalizeReward;
+
         // Create the relevant I/O objects
         initIO(frameSkip);
 
         // Set initial state
-        currentState = initialState;
+        this.currentState = initialState;
+        this.initialState = initialState;
         this.domain = domain;
         updateState();
     }
@@ -98,12 +103,23 @@ public class ALEEnvironment implements Environment {
 
         // Update Environment State
         currentState = currentState.updateStateWithScreen(domain, screen);
-        lastReward = rlData.reward;
+        if (normalizeReward) {
+            if (rlData.reward > 0) {
+                lastReward = 1;
+            } else if (rlData.reward < 0) {
+                lastReward = -1;
+            } else {
+                lastReward = 0;
+            }
+        } else {
+            lastReward = rlData.reward;
+        }
         isTerminal = rlData.isTerminal;
 
         // Save screen capture
         if (movieGenerator != null) {
-            movieGenerator.record(ScreenConverter.convert(screen));
+            // TODO: implement
+//            movieGenerator.record(ScreenConverter.convert(screen));
         }
     }
 
@@ -141,6 +157,9 @@ public class ALEEnvironment implements Environment {
     public void resetEnvironment() {
         // perform reset action
         io.act(Actions.map("system_reset"));
+
+        // reset initialState
+        currentState = initialState;
 
         // update state
         updateState();

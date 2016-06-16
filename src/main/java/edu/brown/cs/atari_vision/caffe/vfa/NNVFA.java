@@ -3,12 +3,16 @@ package edu.brown.cs.atari_vision.caffe.vfa;
 import burlap.behavior.functionapproximation.ParametricFunction;
 import burlap.behavior.valuefunction.QFunction;
 import burlap.behavior.valuefunction.QValue;
+import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.mdp.core.Action;
 import burlap.mdp.core.SimpleAction;
+import burlap.mdp.core.oo.state.OOState;
+import burlap.mdp.core.oo.state.ObjectInstance;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
 import com.google.common.primitives.Floats;
 import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
+import edu.brown.cs.atari_vision.caffe.exampledomains.NNGridWorld;
 import edu.brown.cs.atari_vision.caffe.preprocess.DQNPreProcessor;
 import edu.brown.cs.atari_vision.caffe.preprocess.PreProcessor;
 import org.bytedeco.javacpp.FloatPointer;
@@ -28,71 +32,66 @@ import java.util.List;
  */
 public abstract class NNVFA implements ParametricFunction.ParametricStateActionFunction, QFunction {
 
+    protected static final int BATCH_SIZE = 1;
+
     protected FloatNet caffeNet;
+    protected FloatSolver caffeSolver;
     protected FloatMemoryDataLayer inputLayer;
     protected FloatMemoryDataLayer filterLayer;
     protected FloatMemoryDataLayer yLayer;
+    protected FloatPointer stateInputs;
+    protected FloatPointer primeStateInputs;
     protected FloatPointer dummyInputData;
-
-    protected PreProcessor preProcessor;
+    protected FloatBlob qValuesBlob;
 
     protected ActionSet actionSet;
     protected double gamma;
 
-    protected FloatBlobVector stateInputs;
-    protected FloatBlobVector primeStateInputs;
-
     public NNVFA(ActionSet actionSet, double gamma) {
         this.actionSet = actionSet;
         this.gamma = gamma;
-
-        preProcessor = new DQNPreProcessor();
     }
 
     protected NNVFA(NNVFA vfa) {
         this.actionSet = vfa.actionSet;
         this.gamma = vfa.gamma;
-        this.preProcessor = vfa.preProcessor;
-        this.caffeNet = vfa.caffeNet;
     }
 
     protected abstract void constructNetwork();
 
-    protected abstract FloatBlob convertStateToInput(State state);
+    protected abstract FloatPointer convertStateToInput(State state);
 
     protected abstract int inputSize();
 
 
     public void updateQFunction(List<EnvironmentOutcome> samples, NNVFA staleVfa) {
         int sampleSize = samples.size();
+        if (sampleSize < BATCH_SIZE) {
+            return;
+        }
 
         // Create input ndArrays
 
         int inputSize = inputSize();
 
-        if (stateInputs == null || stateInputs.size() != inputSize) {
-            primeStateInputs = new FloatBlobVector(inputSize);
-            stateInputs = new FloatBlobVector(inputSize);
-
-            dummyInputData = new FloatPointer(sampleSize * inputSize);
-        }
-
         for (int i = 0; i < sampleSize; i++) {
             EnvironmentOutcome eo = samples.get(i);
 
-            stateInputs.put(i, convertStateToInput(eo.o));
-            primeStateInputs.put(i, convertStateToInput(eo.op));
+            stateInputs.position(i*inputSize).put(convertStateToInput(eo.o).limit(inputSize));
+
+            primeStateInputs.position(i*inputSize).put(convertStateToInput(eo.op).limit(inputSize));
         }
 
         // Forward pass states
 
-        staleVfa.inputLayer.Reset(new FloatPointer(primeStateInputs), dummyInputData, inputSize);
-        FloatBlobVector primeQValues = staleVfa.caffeNet.ForwardPrefilled();
+        staleVfa.inputDataIntoLayers(primeStateInputs.position(0), dummyInputData, dummyInputData);
+        staleVfa.caffeNet.ForwardPrefilled();
 
-        FloatPointer ys = new FloatPointer(sampleSize);
+        int numActions = actionSet.size();
+        FloatPointer ys = (new FloatPointer(sampleSize * numActions)).zero();
         for (int i = 0; i < sampleSize; i++) {
             EnvironmentOutcome eo = samples.get(i);
-            float maxQ = blobMax(new FloatPointer(primeQValues.get(i)));
+            float maxQ = blobMax(staleVfa.qValuesBlob, i);
 
             float y;
             if (eo.terminated) {
@@ -101,7 +100,8 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
                 y = (float)(eo.r + gamma*maxQ);
             }
 
-            ys.put(y);
+            int index = i*numActions + actionSet.map(eo.a.actionName());
+            ys.put(index, y);
         }
 
         FloatPointer actionFilter = new FloatPointer(sampleSize * actionSet.size());
@@ -109,37 +109,27 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
             EnvironmentOutcome eo = samples.get(i);
 
             int action = actionSet.map(eo.a.actionName());
+
+            int index = i*actionSet.size();
             for (int a = 0; a < actionSet.size(); a++) {
                 if (a == action) {
-                    actionFilter.put(1);
+                    actionFilter.put(index + a, 1);
                 } else {
-                    actionFilter.put(0);
+                    actionFilter.put(index + a, 0);
                 }
             }
         }
 
 
         // Backprop
-        inputLayer.Reset(new FloatPointer(stateInputs), dummyInputData, inputSize);
-        filterLayer.Reset(actionFilter, dummyInputData, inputSize);
-        yLayer.Reset(ys, dummyInputData, inputSize);
-        caffeNet.ClearParamDiffs();
-        caffeNet.ForwardPrefilled();
-        caffeNet.Backward();
-        caffeNet.Update();
+        inputDataIntoLayers(stateInputs.position(0), actionFilter, ys);
+        caffeSolver.Step(1);
     }
 
-    public float blobMax(FloatPointer blob) {
-
-        FloatBuffer buffer = blob.asBuffer();
-
-        if (!buffer.hasRemaining()) {
-            return 0;
-        }
-
-        float max = buffer.get();
-        while (buffer.hasRemaining()) {
-            float num = buffer.get();
+    public float blobMax(FloatBlob blob, int n) {
+        float max = Float.NEGATIVE_INFINITY;
+        for (int c = 0; c < blob.shape(1); c++) {
+            float num = blob.data_at(n, c, 0, 0);
             if (max < num) {
                 max = num;
             }
@@ -148,36 +138,43 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
     }
 
     public void updateParamsToMatch(NNVFA vfa) {
-        this.caffeNet.ShareTrainedLayersWith(vfa.caffeNet);
+//        this.caffeNet.ShareTrainedLayersWith(vfa.caffeNet);
+        FloatBlobSharedVector params = this.caffeNet.params();
+        FloatBlobSharedVector newParams = vfa.caffeNet.params();
+        for (int i = 0; i < params.size(); i++) {
+            params.get(i).CopyFrom(newParams.get(i));
+        }
     }
 
-    public FloatBlobVector qValuesForState(State state) {
-        FloatBlob input = convertStateToInput(state);
+    public FloatBlob qValuesForState(State state) {
+        int inputSize = inputSize();
 
-        inputLayer.Reset(new FloatPointer(input), dummyInputData, 1);
-        FloatBlobVector output = caffeNet.ForwardPrefilled();
-
-        return output;
+        stateInputs.position(0).put(convertStateToInput(state).limit(inputSize));
+        inputDataIntoLayers(stateInputs, dummyInputData, dummyInputData);
+        caffeNet.ForwardPrefilled();
+        return qValuesBlob;
     }
 
     @Override
     public double evaluate(State state, Action abstractGroundedAction) {
-        FloatBlobVector output = qValuesForState(state);
+        FloatBlob output = qValuesForState(state);
 
         int action = actionSet.map(abstractGroundedAction.actionName());
-        return output.get(action).data_at(0,0,0,0);
+        return output.data_at(0,action,0,0);
     }
 
     @Override
     public List<QValue> getQs(State state) {
 
-        FloatBlobVector qVector = qValuesForState(state);
-        ArrayList<QValue> qValues = new ArrayList<>((int)qVector.size());
-        for (int a = 0; a < qVector.size(); a++) {
-            QValue q = new QValue(state, new SimpleAction(actionSet.get(a)), qVector.get(a).data_at(0,0,0,0));
-            qValues.add(q);
+        FloatBlob qValues = qValuesForState(state);
+        int numActions = actionSet.size();
+
+        ArrayList<QValue> qValueList = new ArrayList<>(numActions);
+        for (int a = 0; a < numActions; a++) {
+            QValue q = new QValue(state, new SimpleAction(actionSet.get(a)), qValues.data_at(0, a, 0, 0));
+            qValueList.add(q);
         }
-        return qValues;
+        return qValueList;
     }
 
     @Override
@@ -194,6 +191,12 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
             max = Math.max(max, q.q);
         }
         return max;
+    }
+
+    protected void inputDataIntoLayers(FloatPointer inputData, FloatPointer filterData, FloatPointer yData) {
+        inputLayer.Reset(inputData, dummyInputData, BATCH_SIZE);
+        filterLayer.Reset(filterData, dummyInputData, BATCH_SIZE);
+        yLayer.Reset(yData, dummyInputData, BATCH_SIZE);
     }
 
 
@@ -246,6 +249,72 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
 //        }
     }
 
+
+    // Debug methods
+    public static void print2D(FloatPointer ptr, int rows, int cols) {
+        print2D(ptr, rows, cols, 1);
+    }
+
+    public static void print2D(FloatPointer ptr, int rows, int cols, int n) {
+
+        FloatBuffer buffer = ptr.asBuffer();
+
+        for (int i = 0; i < n; i++) {
+            for (int r = 0; r < rows; r++) {
+                for (int c = 0; c < cols; c++) {
+                    System.out.print(String.format("%.2f ", buffer.get()));
+                }
+                System.out.println();
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+
+    public static void printBlob(FloatBlob blob) {
+
+        for (int n = 0; n < blob.shape(0); n++) {
+            for (int c = 0; c < blob.shape(1); c++) {
+                if (blob.num_axes() > 3 && blob.shape(2) > 1) {
+                    for (int x = 0; x < blob.shape(2); x++) {
+                        for (int y = 0; y < blob.shape(3); y++) {
+                            System.out.print(blob.data_at(n, c, x, y) + " ");
+                        }
+                        System.out.println();
+                    }
+                    System.out.println();
+                } else {
+                    System.out.print(blob.data_at(n, c, 0, 0) + " ");
+//                System.out.print(String.format("%.2f ", blob.data_at(n, c, 0, 0)));
+                }
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+
+    protected void printND(FloatPointer ptr, int[] dims) {
+
+        int[] index = new int[dims.length];
+
+        while (true) {
+            System.out.print(String.format("%.2f ", ptr.get()));
+
+            int i = 0;
+            for (; i < dims.length; i++) {
+                index[i]++;
+                if (index[i] >= dims[i]) {
+                    index[i] = 0;
+                    System.out.println();
+                } else {
+                    break;
+                }
+            }
+            if (i == dims.length) {
+                break;
+            }
+        }
+    }
 
 
     // Unsupported Operations

@@ -25,7 +25,7 @@ public class BurlapAgent {
         this.policy = policy;
         this.vis = vis;
 
-        env = new ALEEnvironment(domain, initialState, rom, useGUI);
+        env = new ALEEnvironment(domain, initialState, rom, false, useGUI);
     }
 
     public void run(int episodes) {

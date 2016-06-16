@@ -16,6 +16,8 @@ import edu.brown.cs.atari_vision.caffe.preprocess.DQNPreProcessor;
 import edu.brown.cs.atari_vision.caffe.vfa.DQN;
 import org.bytedeco.javacpp.Loader;
 
+import static org.bytedeco.javacpp.caffe.*;
+
 /**
  * Created by MelRod on 5/31/16.
  */
@@ -26,12 +28,15 @@ public class DQNTrainer {
     private static final boolean GUI = true;
 
     public static void main(String[] args) {
+
+        Loader.load(Caffe.class);
+
         ALEDomainGenerator domGen = new ALEDomainGenerator();
         SADomain domain = domGen.generateDomain();
         NNState initialState = new NHistoryState(4, new DQNPreProcessor());
 
         int k = 4;
-        ALEEnvironment env = new ALEEnvironment(domain, initialState, ROM, k, GUI);
+        ALEEnvironment env = new ALEEnvironment(domain, initialState, ROM, k, true, GUI);
 
         double gamma = 0.99;
         ActionSet actionSet = Actions.pongActionSet();
@@ -40,7 +45,7 @@ public class DQNTrainer {
         Policy policy = new AnnealedEpsilonGreedy(dqn, 1.0, 0.1, 1000000);
 
         DeepQLearner deepQLearner = new DeepQLearner(domain, 0.99, policy, dqn);
-        deepQLearner.setExperienceReplay(new FixedSizeMemory(1000000), 32);
+        deepQLearner.setExperienceReplay(new FixedSizeMemory(50000), 1);
 
         Policy testPolicy = new EpsilonGreedy(dqn, 0.05);
 
@@ -48,7 +53,7 @@ public class DQNTrainer {
         TrainingHelper helper = new TrainingHelper(deepQLearner, dqn, testPolicy, actionSet, env);
         helper.setTotalTrainingFrames(10000000);
         helper.setTestInterval(50000);
-        helper.setNumTestEpisodes(10);
+        helper.setNumTestEpisodes(5);
         helper.setNumSampleStates(1000);
         helper.setSnapshots(SNAPSHOT_FILE_NAME, 100000);
 

@@ -4,6 +4,7 @@ import burlap.mdp.core.state.State;
 import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.nnstate.NNState;
 import org.bytedeco.javacpp.FloatPointer;
+import org.bytedeco.javacpp.Loader;
 
 import static org.bytedeco.javacpp.caffe.*;
 
@@ -18,6 +19,8 @@ public class DQN extends NNVFA {
     static final String FILTER_NAME = "filter_input_layer";
     static final String YS_NAME = "target_input_layer";
 
+    public static final String Q_VALUES_BLOB_NAME = "q_values";
+
     public DQN(ActionSet actionSet, double gamma) {
         super(actionSet, gamma);
         constructNetwork();
@@ -25,6 +28,9 @@ public class DQN extends NNVFA {
 
     protected DQN(DQN dqn) {
         super(dqn);
+
+        constructNetwork();
+        updateParamsToMatch(dqn);
     }
 
     @Override
@@ -35,18 +41,26 @@ public class DQN extends NNVFA {
 
         if (solver_param.solver_mode() == SolverParameter_SolverMode_GPU) {
             Caffe.set_mode(Caffe.GPU);
+        } else {
+            Caffe.set_mode(Caffe.CPU);
         }
 
-        FloatSolver solver = FloatSolverRegistry.CreateSolver(solver_param);
-        this.caffeNet = solver.net();
+        this.caffeSolver = FloatSolverRegistry.CreateSolver(solver_param);
+        this.caffeNet = caffeSolver.net();
 
-        this.inputLayer = (FloatMemoryDataLayer)caffeNet.layer_by_name(INPUT_NAME);
-        this.filterLayer = (FloatMemoryDataLayer)caffeNet.layer_by_name(FILTER_NAME);
-        this.yLayer = (FloatMemoryDataLayer)caffeNet.layer_by_name(YS_NAME);
+        this.inputLayer = new FloatMemoryDataLayer(caffeNet.layer_by_name(INPUT_NAME));
+        this.filterLayer = new FloatMemoryDataLayer(caffeNet.layer_by_name(FILTER_NAME));
+        this.yLayer = new FloatMemoryDataLayer(caffeNet.layer_by_name(YS_NAME));
+
+        this.primeStateInputs = (new FloatPointer(BATCH_SIZE * inputSize())).fill(0);
+        this.stateInputs = (new FloatPointer(BATCH_SIZE * inputSize())).fill(0);
+        this.dummyInputData = (new FloatPointer(BATCH_SIZE * inputSize())).fill(0);
+
+        this.qValuesBlob = caffeNet.blob_by_name(Q_VALUES_BLOB_NAME);
     }
 
     @Override
-    protected FloatBlob convertStateToInput(State state) {
+    protected FloatPointer convertStateToInput(State state) {
         return ((NNState)state).getInput();
     }
 
