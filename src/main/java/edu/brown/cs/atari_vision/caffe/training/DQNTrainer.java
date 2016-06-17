@@ -31,9 +31,11 @@ public class DQNTrainer {
 
         Loader.load(Caffe.class);
 
+        int experienceMemory = 10000000;
+
         ALEDomainGenerator domGen = new ALEDomainGenerator();
         SADomain domain = domGen.generateDomain();
-        NNState initialState = new NHistoryState(4, new DQNPreProcessor());
+        NHistoryState initialState = new NHistoryState(4, experienceMemory, new DQNPreProcessor());
 
         int k = 4;
         ALEEnvironment env = new ALEEnvironment(domain, initialState, ROM, k, true, GUI);
@@ -45,7 +47,7 @@ public class DQNTrainer {
         Policy policy = new AnnealedEpsilonGreedy(dqn, 1.0, 0.1, 1000000);
 
         DeepQLearner deepQLearner = new DeepQLearner(domain, 0.99, policy, dqn);
-        deepQLearner.setExperienceReplay(new FixedSizeMemory(50000), 1);
+        deepQLearner.setExperienceReplay(new FixedSizeMemory(experienceMemory), 1);
 
         Policy testPolicy = new EpsilonGreedy(dqn, 0.05);
 

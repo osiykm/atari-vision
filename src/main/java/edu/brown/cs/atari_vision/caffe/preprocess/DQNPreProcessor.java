@@ -1,5 +1,6 @@
 package edu.brown.cs.atari_vision.caffe.preprocess;
 
+import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
 import static org.bytedeco.javacpp.opencv_core.*;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
@@ -22,7 +23,7 @@ public class DQNPreProcessor implements PreProcessor {
     }
 
     @Override
-    public FloatPointer convertScreenToInput(Mat screen) {
+    public BytePointer convertScreenToData(Mat screen) {
 
         Mat gray = new Mat();
         cvtColor(screen, gray, COLOR_BGR2GRAY);
@@ -32,10 +33,19 @@ public class DQNPreProcessor implements PreProcessor {
 
         Mat crop = downsample.apply(new Rect(cropLeft, cropTop, cropWidth, cropHeight));
 
-        Mat floatCrop = new Mat(crop.rows(), crop.cols(), CV_32F);
-        crop.convertTo(floatCrop, CV_32F, 1/255.0, 0);
+        return crop.data();
+    }
 
-        return new FloatPointer(floatCrop.data());
+    @Override
+    public FloatPointer convertDataToInput(BytePointer data, int size) {
+
+        int dataSize = outputSize() * size;
+
+        Mat mat = new Mat(1, dataSize, CV_8U, data);
+        Mat floatMat = new Mat(1, dataSize, CV_32F);
+
+        mat.convertTo(floatMat, CV_32F, 1/255.0, 0);
+        return new FloatPointer(floatMat.data());
     }
 
     @Override

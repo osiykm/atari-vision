@@ -30,9 +30,11 @@ public class test {
     private static DQNPreProcessor preProcessor = new DQNPreProcessor();
 
     public static void main(String[] args) {
+        int experienceMemory = 10000;
+
         ALEDomainGenerator domGen = new ALEDomainGenerator();
         SADomain domain = domGen.generateDomain();
-        NNState initialState = new NHistoryState(4, new DQNPreProcessor());
+        NHistoryState initialState = new NHistoryState(4, experienceMemory, new DQNPreProcessor());
 
         Policy policy = new RandomPolicy(domain);
         ALEEnvironment env = new ALEEnvironment(domain, initialState, rom, true, true);

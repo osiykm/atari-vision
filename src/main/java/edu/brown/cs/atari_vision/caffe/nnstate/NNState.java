@@ -8,7 +8,7 @@ import static org.bytedeco.javacpp.caffe.*;
 /**
  * Created by MelRod on 5/27/16.
  */
-public interface NNState extends ALEState {
+public interface NNState {
 
-    public FloatPointer getInput();
+    FloatPointer getInput();
 }
