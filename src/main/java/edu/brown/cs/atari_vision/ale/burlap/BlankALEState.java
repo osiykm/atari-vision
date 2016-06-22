@@ -26,6 +26,11 @@ public class BlankALEState implements ALEState {
         return new BlankALEState(newScreen);
     }
 
+    @Override
+    public ALEState reset() {
+        return this;
+    }
+
     public Mat getScreen() {
         return screen;
     }

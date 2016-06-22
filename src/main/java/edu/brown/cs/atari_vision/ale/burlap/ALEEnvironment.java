@@ -30,7 +30,6 @@ public class ALEEnvironment implements Environment {
 
     /** State data **/
     Domain domain;
-    private ALEState initialState;
     private ALEState currentState;
     private int lastReward;
     private boolean isTerminal;
@@ -74,7 +73,6 @@ public class ALEEnvironment implements Environment {
 
         // Set initial state
         this.currentState = initialState;
-        this.initialState = initialState;
         this.domain = domain;
         updateState();
     }
@@ -129,18 +127,18 @@ public class ALEEnvironment implements Environment {
     }
 
     @Override
-    public EnvironmentOutcome executeAction(Action ga) {
+    public EnvironmentOutcome executeAction(Action a) {
         // save start state
         ALEState startState = currentState;
 
         // perform action
-        int action = Actions.map(ga.actionName());
+        int action = Actions.map(a.actionName());
         io.act(action);
 
         // update state
         updateState();
 
-        return new EnvironmentOutcome(startState, ga, currentState, lastReward, isInTerminalState());
+        return new EnvironmentOutcome(startState, a, currentState, lastReward, isInTerminalState());
     }
 
     @Override
@@ -159,7 +157,7 @@ public class ALEEnvironment implements Environment {
         io.act(Actions.map("system_reset"));
 
         // reset initialState
-        currentState = initialState;
+        currentState.reset();
 
         // update state
         updateState();

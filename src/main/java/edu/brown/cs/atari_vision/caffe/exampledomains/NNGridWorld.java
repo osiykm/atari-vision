@@ -6,6 +6,7 @@ import burlap.behavior.policy.GreedyQPolicy;
 import burlap.behavior.policy.Policy;
 import burlap.behavior.singleagent.auxiliary.StateReachability;
 import burlap.behavior.singleagent.auxiliary.valuefunctionvis.ValueFunctionVisualizerGUI;
+import burlap.behavior.valuefunction.QValue;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
 import burlap.domain.singleagent.gridworld.state.GridAgent;
@@ -14,6 +15,7 @@ import burlap.domain.singleagent.gridworld.state.GridWorldState;
 import burlap.mdp.auxiliary.common.SinglePFTF;
 import burlap.mdp.auxiliary.stateconditiontest.StateConditionTest;
 import burlap.mdp.auxiliary.stateconditiontest.TFGoalCondition;
+import burlap.mdp.core.Action;
 import burlap.mdp.core.TerminalFunction;
 import burlap.mdp.core.oo.propositional.PropositionalFunction;
 import burlap.mdp.core.oo.state.OOState;
@@ -176,7 +178,7 @@ public class NNGridWorld extends NNVFA {
 
         Policy policy = new AnnealedEpsilonGreedy(nnGridWorld, 1.0, 0.1, 1000000);
 
-        DeepQLearner deepQLearner = new DeepQLearner(nnGridWorld.domain, 0.99, policy, nnGridWorld);
+        DeepQLearner deepQLearner = new DeepQLearner(nnGridWorld.domain, 0.99, 50000, policy, nnGridWorld);
         deepQLearner.setExperienceReplay(new FixedSizeMemory(1000000), BATCH_SIZE);
 
         Policy testPolicy = new EpsilonGreedy(nnGridWorld, 0.05);
@@ -188,7 +190,7 @@ public class NNGridWorld extends NNVFA {
         }
 
         // setup helper
-        TrainingHelper helper = new TrainingHelper(deepQLearner, nnGridWorld, testPolicy, actionSet, nnGridWorld.env);
+        TrainingHelper helper = new TrainingHelper(deepQLearner, nnGridWorld, testPolicy, actionSet, nnGridWorld.env, nnGridWorld.env);
         helper.setTotalTrainingFrames(10000000);
         helper.setTestInterval(50000);
         helper.setNumTestEpisodes(5);

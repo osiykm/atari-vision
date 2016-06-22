@@ -2,6 +2,7 @@ package edu.brown.cs.atari_vision.caffe.vfa;
 
 import burlap.behavior.functionapproximation.ParametricFunction;
 import burlap.behavior.valuefunction.QFunction;
+import burlap.behavior.valuefunction.QProvider;
 import burlap.behavior.valuefunction.QValue;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.mdp.core.Action;
@@ -15,7 +16,10 @@ import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.exampledomains.NNGridWorld;
 import edu.brown.cs.atari_vision.caffe.preprocess.DQNPreProcessor;
 import edu.brown.cs.atari_vision.caffe.preprocess.PreProcessor;
+import edu.brown.cs.atari_vision.caffe.visualizers.PongVisualizer;
 import org.bytedeco.javacpp.FloatPointer;
+
+import javax.swing.*;
 
 import static org.bytedeco.javacpp.caffe.*;
 
@@ -30,9 +34,12 @@ import java.util.List;
 /**
  * Created by MelRod on 5/25/16.
  */
-public abstract class NNVFA implements ParametricFunction.ParametricStateActionFunction, QFunction {
+public abstract class NNVFA implements ParametricFunction.ParametricStateActionFunction, QProvider {
 
-    protected static final int BATCH_SIZE = 1;
+    // DEBUG
+    static JFrame pongVisualizer = PongVisualizer.createPongVisualizer();
+
+    public static final int BATCH_SIZE = 32;
 
     protected FloatNet caffeNet;
     protected FloatSolver caffeSolver;
@@ -110,8 +117,8 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
 
             int action = actionSet.map(eo.a.actionName());
 
-            int index = i*actionSet.size();
-            for (int a = 0; a < actionSet.size(); a++) {
+            int index = i*numActions;
+            for (int a = 0; a < numActions; a++) {
                 if (a == action) {
                     actionFilter.put(index + a, 1);
                 } else {
@@ -164,7 +171,7 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
     }
 
     @Override
-    public List<QValue> getQs(State state) {
+    public List<QValue> qValues(State state) {
 
         FloatBlob qValues = qValuesForState(state);
         int numActions = actionSet.size();
@@ -174,18 +181,21 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
             QValue q = new QValue(state, new SimpleAction(actionSet.get(a)), qValues.data_at(0, a, 0, 0));
             qValueList.add(q);
         }
+
+        // DEBUG
+        PongVisualizer.setQValues(qValueList);
+
         return qValueList;
     }
 
     @Override
-    public QValue getQ(State state, Action abstractGroundedAction) {
-        double q = evaluate(state, abstractGroundedAction);
-        return new QValue(state, abstractGroundedAction, q);
+    public double qValue(State state, Action abstractGroundedAction) {
+        return evaluate(state, abstractGroundedAction);
     }
 
     @Override
     public double value(State s) {
-        List<QValue> qs = this.getQs(s);
+        List<QValue> qs = this.qValues(s);
         double max = Double.NEGATIVE_INFINITY;
         for(QValue q : qs){
             max = Math.max(max, q.q);
@@ -199,54 +209,9 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
         yLayer.Reset(yData, dummyInputData, BATCH_SIZE);
     }
 
-
-    // Saving
-    public void saveWeightsTo(String fileName) {
-        // TODO: implement
-//        //Write the network parameters:
-//        try(DataOutputStream dos = new DataOutputStream(Files.newOutputStream(Paths.get(fileName+".bin")))){
-//            Nd4j.write(model.params(),dos);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//        //Save the updater:
-//        try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName+".updater.bin"))){
-//            oos.writeObject(model.getUpdater());
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-    }
-
     // Loading
-    public void setWeightsFrom(String fileName) {
-        // TODO: implement
-//        //Load parameters from disk:
-//        try(DataInputStream dis = new DataInputStream(new FileInputStream(fileName+".bin"))){
-//
-//            INDArray newParams = Nd4j.read(dis);
-//            this.model.setParams(newParams);
-//
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//        //Load the updater:
-//        Updater updater;
-//        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName+".updater.bin"))){
-//            updater = (Updater) ois.readObject();
-//            model.setUpdater(updater);
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (ClassNotFoundException e) {
-//            e.printStackTrace();
-//        }
+    public void loadWeightsFrom(String fileName) {
+        caffeNet.CopyTrainedLayersFrom(fileName);
     }
 
 

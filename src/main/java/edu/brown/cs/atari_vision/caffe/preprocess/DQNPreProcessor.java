@@ -13,7 +13,7 @@ public class DQNPreProcessor implements PreProcessor {
     static final int scaleWidth = 84;
     static final int scaleHeight = 110;
 
-    static final int cropTop = 20;
+    static final int cropTop = 26;
     static final int cropLeft = 0;
     static final int cropWidth = 84;
     static final int cropHeight = 84;
@@ -37,9 +37,13 @@ public class DQNPreProcessor implements PreProcessor {
     }
 
     @Override
-    public FloatPointer convertDataToInput(BytePointer data, int size) {
+    public FloatPointer convertDataToInput(BytePointer data, long size) {
 
-        int dataSize = outputSize() * size;
+        if (size > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Size is too large to create an opencv Mat");
+        }
+
+        int dataSize = outputSize() * (int)size;
 
         Mat mat = new Mat(1, dataSize, CV_8U, data);
         Mat floatMat = new Mat(1, dataSize, CV_32F);

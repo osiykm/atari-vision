@@ -7,7 +7,7 @@ import burlap.behavior.singleagent.Episode;
 import burlap.behavior.singleagent.MDPSolver;
 import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.options.EnvironmentOptionOutcome;
-import burlap.behavior.valuefunction.QFunction;
+import burlap.behavior.valuefunction.QProvider;
 import burlap.behavior.valuefunction.QValue;
 import burlap.mdp.core.Action;
 import burlap.mdp.core.state.State;
@@ -16,6 +16,7 @@ import burlap.mdp.singleagent.environment.Environment;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.ExperiencesMemory;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FixedSizeMemory;
+import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameHistoryState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.List;
 /**
  * @author James MacGlashan.
  */
-public abstract class ApproximateQLearning extends MDPSolver implements LearningAgent, QFunction {
+public abstract class ApproximateQLearning extends MDPSolver implements LearningAgent, QProvider {
 
 
 	/**
@@ -173,25 +174,24 @@ public abstract class ApproximateQLearning extends MDPSolver implements Learning
 	}
 
 	@Override
-	public List<QValue> getQs(State s) {
-		List<Action> actions = this.getAllGroundedActions(s);
+	public List<QValue> qValues(State s) {
+		List<Action> actions = this.applicableActions(s);
 		List<QValue> qs = new ArrayList<QValue>(actions.size());
 		for(Action a : actions){
-			QValue q = this.getQ(s, a);
+			QValue q = new QValue(s, a, this.qValue(s, a));
 			qs.add(q);
 		}
 		return qs;
 	}
 
 	@Override
-	public QValue getQ(State s, Action a) {
-		double qv = this.vfa.evaluate(s, a);
-		return new QValue(s, a, qv);
+	public double qValue(State s, Action a) {
+		return this.vfa.evaluate(s, a);
 	}
 
 	@Override
 	public double value(State s) {
-		List<QValue> qs = this.getQs(s);
+		List<QValue> qs = this.qValues(s);
 		double max = Double.NEGATIVE_INFINITY;
 		for(QValue q : qs){
 			max = Math.max(max, q.q);
@@ -201,7 +201,7 @@ public abstract class ApproximateQLearning extends MDPSolver implements Learning
 
 
 	public List<QValue> getStaleQs(State s) {
-		List<Action> actions = this.getAllGroundedActions(s);
+		List<Action> actions = this.applicableActions(s);
 		List<QValue> qs = new ArrayList<QValue>(actions.size());
 		for(Action a : actions){
 			QValue q = this.getStaleQ(s, a);
@@ -237,4 +237,19 @@ public abstract class ApproximateQLearning extends MDPSolver implements Learning
 	public abstract void updateQFunction(List<EnvironmentOutcome> samples);
 
 
+
+	// DEBUG
+	public void checkOverlap() {
+		List<EnvironmentOutcome> outcomes = memory.sampleExperiences(10000000);
+
+		for (int a = 0; a < outcomes.size(); a++) {
+			for (int b = a + 1; b < outcomes.size(); b++) {
+				FrameHistoryState stateA = (FrameHistoryState) outcomes.get(a).o;
+				FrameHistoryState stateB = (FrameHistoryState) outcomes.get(b).o;
+				if (stateA.index == stateB.index) {
+					System.out.println("OVERLAP!!!!");
+				}
+			}
+		}
+	}
 }

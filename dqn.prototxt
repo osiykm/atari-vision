@@ -4,7 +4,7 @@ layer {
   top: "frames"
   top: "dummy1"
   memory_data_param {
-    batch_size: 1
+    batch_size: 32
     channels: 4
     height: 84
     width: 84
@@ -16,7 +16,7 @@ layer {
   top: "target"
   top: "dummy2"
   memory_data_param {
-    batch_size: 1
+    batch_size: 32
     channels: 3
     height: 1
     width: 1
@@ -28,7 +28,7 @@ layer {
   top: "filter"
   top: "dummy3"
   memory_data_param {
-    batch_size: 1
+    batch_size: 32
     channels: 3
     height: 1
     width: 1
@@ -61,6 +61,7 @@ layer {
     }
     bias_filler {
       type: "constant"
+      value: 0
     }
   }
 }
@@ -85,6 +86,7 @@ layer {
     }
     bias_filler {
       type: "constant"
+      value: 0
     }
   }
 }
@@ -109,6 +111,7 @@ layer {
     }
     bias_filler {
       type: "constant"
+      value: 0
     }
   }
 }
@@ -131,6 +134,7 @@ layer {
     }
     bias_filler {
       type: "constant"
+      value: 0
     }
   }
 }
@@ -153,6 +157,7 @@ layer {
     }
     bias_filler {
       type: "constant"
+      value: 0
     }
   }
 }

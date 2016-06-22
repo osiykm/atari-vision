@@ -1,9 +1,7 @@
 package edu.brown.cs.atari_vision;
 
-import edu.brown.cs.atari_vision.ale.burlap.ALEState;
-import edu.brown.cs.atari_vision.caffe.exampledomains.NNGridWorld;
-import edu.brown.cs.atari_vision.caffe.nnstate.NHistoryState;
-import edu.brown.cs.atari_vision.caffe.nnstate.NNState;
+import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameExperienceMemory;
+import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameHistoryState;
 import edu.brown.cs.atari_vision.caffe.preprocess.PreProcessor;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
@@ -25,7 +23,7 @@ import java.util.List;
 /**
  * Created by maroderi on 6/16/16.
  */
-public class NHistoryStateTest {
+public class FrameHistoryStateTest {
 
 
 
@@ -59,11 +57,12 @@ public class NHistoryStateTest {
         Mat frame7 = new Mat(1, 2, CV_8U, data7);
 
 
-        NHistoryState state0 = new NHistoryState(2, 5, new TestPreprocessor(2));
-        NHistoryState state1 = (NHistoryState) state0.updateStateWithScreen(null, frame1);
-        NHistoryState state2 = (NHistoryState) state1.updateStateWithScreen(null, frame2);
-        NHistoryState state3 = (NHistoryState) state2.updateStateWithScreen(null, frame3);
-        NHistoryState state4 = (NHistoryState) state3.updateStateWithScreen(null, frame4);
+        FrameExperienceMemory experienceMemory = new FrameExperienceMemory(5, 2, new TestPreprocessor(2));
+        FrameHistoryState state0 = new FrameHistoryState(experienceMemory);
+        FrameHistoryState state1 = (FrameHistoryState) state0.updateStateWithScreen(null, frame1);
+        FrameHistoryState state2 = (FrameHistoryState) state1.updateStateWithScreen(null, frame2);
+        FrameHistoryState state3 = (FrameHistoryState) state2.updateStateWithScreen(null, frame3);
+        FrameHistoryState state4 = (FrameHistoryState) state3.updateStateWithScreen(null, frame4);
 
         compare(state0.getInput(), new BytePointer[]{data0, data0}, 2);
         compare(state1.getInput(), new BytePointer[]{data0, data1}, 2);
@@ -71,9 +70,9 @@ public class NHistoryStateTest {
         compare(state3.getInput(), new BytePointer[]{data2, data3}, 2);
         compare(state4.getInput(), new BytePointer[]{data3, data4}, 2);
 
-        NHistoryState state5 = (NHistoryState) state4.updateStateWithScreen(null, frame5);
-        NHistoryState state6 = (NHistoryState) state5.updateStateWithScreen(null, frame6);
-        NHistoryState state7 = (NHistoryState) state6.updateStateWithScreen(null, frame7);
+        FrameHistoryState state5 = (FrameHistoryState) state4.updateStateWithScreen(null, frame5);
+        FrameHistoryState state6 = (FrameHistoryState) state5.updateStateWithScreen(null, frame6);
+        FrameHistoryState state7 = (FrameHistoryState) state6.updateStateWithScreen(null, frame7);
 
         compare(state3.getInput(), new BytePointer[]{data2, data3}, 2);
         compare(state4.getInput(), new BytePointer[]{data3, data4}, 2);
@@ -88,7 +87,8 @@ public class NHistoryStateTest {
         int history = 4;
         int frameSize = 30;
 
-        NHistoryState initialState = new NHistoryState(history, replaySize, new TestPreprocessor(frameSize));
+        FrameExperienceMemory experienceMemory = new FrameExperienceMemory(replaySize, history, new TestPreprocessor(frameSize));
+        FrameHistoryState initialState = new FrameHistoryState(experienceMemory);
         BytePointer data0 = new BytePointer(history);
         for (int f = 0; f < frameSize; f++) {
             data0.position(f).put((byte)0);
@@ -102,9 +102,9 @@ public class NHistoryStateTest {
 
         List<List<BytePointer>> dataListList = new ArrayList<>();
 
-        List<NHistoryState> states = new ArrayList<>();
+        List<FrameHistoryState> states = new ArrayList<>();
 
-        NHistoryState prevState = initialState;
+        FrameHistoryState prevState = initialState;
 
         for (int n = 0; n < 100; n++) {
             for (int i = 0; i < replaySize; i++) {
@@ -119,7 +119,7 @@ public class NHistoryStateTest {
 
                 Mat frame = new Mat(1, frameSize, CV_8U, data);
 
-                NHistoryState state = (NHistoryState)prevState.updateStateWithScreen(null, frame);
+                FrameHistoryState state = (FrameHistoryState)prevState.updateStateWithScreen(null, frame);
                 prevState = state;
 
                 compare(state.getInput(), dataList.toArray(new BytePointer[history]), frameSize);
@@ -197,8 +197,8 @@ public class NHistoryStateTest {
         }
 
         @Override
-        public FloatPointer convertDataToInput(BytePointer data, int size) {
-            int dataSize = outputSize() * size;
+        public FloatPointer convertDataToInput(BytePointer data, long size) {
+            int dataSize = outputSize() * (int)size;
 
             Mat mat = new Mat(1, dataSize, CV_8U, data);
             Mat floatMat = new Mat(1, dataSize, CV_32F);

@@ -32,7 +32,7 @@ public class RunAgents {
 
         // Parameters; default values
         String agentName = "";
-        int episodes = 1;
+        int episodes = 10;
         boolean useGUI = true;
 
         // Parse arguments

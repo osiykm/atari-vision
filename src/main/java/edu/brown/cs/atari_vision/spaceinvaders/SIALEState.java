@@ -93,6 +93,12 @@ public class SIALEState extends GenericOOState implements ALEState {
         return s;
     }
 
+    @Override
+    public ALEState reset() {
+        // TODO: implement
+        return this;
+    }
+
     public Mat getScreen() {
         return screen;
     }

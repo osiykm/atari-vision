@@ -9,5 +9,7 @@ import org.bytedeco.javacpp.opencv_core;
  */
 public interface ALEState extends State {
 
-    public ALEState updateStateWithScreen(Domain domain, opencv_core.Mat newScreen);
+    ALEState updateStateWithScreen(Domain domain, opencv_core.Mat newScreen);
+
+    ALEState reset();
 }

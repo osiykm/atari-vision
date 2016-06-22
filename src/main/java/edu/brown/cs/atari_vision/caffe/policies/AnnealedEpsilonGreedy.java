@@ -2,6 +2,7 @@ package edu.brown.cs.atari_vision.caffe.policies;
 
 import burlap.behavior.policy.EpsilonGreedy;
 import burlap.behavior.valuefunction.QFunction;
+import burlap.behavior.valuefunction.QProvider;
 import burlap.mdp.core.Action;
 import burlap.mdp.core.state.State;
 
@@ -15,7 +16,7 @@ public class AnnealedEpsilonGreedy extends EpsilonGreedy {
     protected double epsilonStep;
     protected int annealingTime;
 
-    public AnnealedEpsilonGreedy(QFunction planner, double epsilonStart, double epsilonEnd, int annealingTime) {
+    public AnnealedEpsilonGreedy(QProvider planner, double epsilonStart, double epsilonEnd, int annealingTime) {
         super(planner, epsilonStart);
 
         this.epsilonStart = epsilonStart;

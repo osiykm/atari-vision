@@ -31,7 +31,8 @@ public class TrainingHelper {
     DeepQLearner learner;
     NNVFA vfa;
     Policy testPolicy;
-    Environment env;
+    Environment trainingEnv;
+    Environment testEnv;
     ActionSet actionSet;
 
     int maxEpisodeFrames = 10000;
@@ -44,14 +45,12 @@ public class TrainingHelper {
     List<State> sampleStates;
     int numSampleStates = -1;
 
-    String snapshotFileName;
-    int snapshotInterval = -1;
-
-    public TrainingHelper(DeepQLearner learner, NNVFA vfa, Policy testPolicy, ActionSet actionSet, Environment env) {
+    public TrainingHelper(DeepQLearner learner, NNVFA vfa, Policy testPolicy, ActionSet actionSet, Environment trainingEnv, Environment testEnv) {
         this.learner = learner;
         this.vfa = vfa;
         this.testPolicy = testPolicy;
-        this.env = env;
+        this.trainingEnv = trainingEnv;
+        this.testEnv = testEnv;
         this.actionSet = actionSet;
     }
 
@@ -71,11 +70,6 @@ public class TrainingHelper {
         testInterval = i;
     }
 
-    public void setSnapshots(String snapshotFileName, int snapshotInterval) {
-        this.snapshotFileName = snapshotFileName;
-        this.snapshotInterval = snapshotInterval;
-    }
-
     public void run() {
         if (numSampleStates > 0) {
             System.out.println("Sampling random states");
@@ -86,7 +80,7 @@ public class TrainingHelper {
 
             while (sampleStates.size() < numSampleStates) {
                 // Run a random episode
-                Episode ea = runEpisode(randomPolicy);
+                Episode ea = runEpisode(randomPolicy, testEnv);
                 int episodeSize = ea.numTimeSteps();
 
                 // Random sample of unique states from the episode
@@ -104,13 +98,12 @@ public class TrainingHelper {
         int episode = 0;
 
         int testCountDown = testInterval;
-        int snapshotCountDown = snapshotInterval;
 
         while (frameCounter < totalTrainingFrames) {
             System.out.println(String.format("Training Episode %d at frame %d", episode, frameCounter));
 
-            env.resetEnvironment();
-            Episode ea = learner.runLearningEpisode(env, Math.min(totalTrainingFrames - frameCounter, maxEpisodeFrames));
+            trainingEnv.resetEnvironment();
+            Episode ea = learner.runLearningEpisode(trainingEnv, Math.min(totalTrainingFrames - frameCounter, maxEpisodeFrames));
             double totalReward = 0;
             for (double r : ea.rewardSequence) {
                 totalReward += r;
@@ -122,14 +115,6 @@ public class TrainingHelper {
             if (testCountDown <= 0) {
                 runTestSet();
                 testCountDown += testInterval;
-            }
-
-            if (snapshotInterval > 0) {
-                snapshotCountDown -= ea.numTimeSteps();
-                if (snapshotCountDown <= 0) {
-                    vfa.saveWeightsTo(snapshotFileName);
-                    snapshotCountDown += snapshotInterval;
-                }
             }
 
             frameCounter += ea.numTimeSteps();
@@ -162,7 +147,7 @@ public class TrainingHelper {
         System.out.println("Running Test Set...");
         double totalTestReward = 0;
         for (int e = 1; e <= numTestEpisodes; e++) {
-            Episode ea = runEpisode(testPolicy);
+            Episode ea = runEpisode(testPolicy, testEnv);
 
             double totalReward = 0;
             for (double reward : ea.rewardSequence) {
@@ -177,7 +162,7 @@ public class TrainingHelper {
         System.out.println();
     }
 
-    public Episode runEpisode(Policy policy) {
+    public Episode runEpisode(Policy policy, Environment env) {
         env.resetEnvironment();
         Episode ea = new Episode();
 
