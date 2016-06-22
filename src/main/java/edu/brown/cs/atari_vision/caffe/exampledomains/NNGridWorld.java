@@ -34,6 +34,7 @@ import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FixedSizeMemory;
 import edu.brown.cs.atari_vision.caffe.learners.DeepQLearner;
 import edu.brown.cs.atari_vision.caffe.policies.AnnealedEpsilonGreedy;
+import edu.brown.cs.atari_vision.caffe.training.SimpleTrainer;
 import edu.brown.cs.atari_vision.caffe.training.TrainingHelper;
 import edu.brown.cs.atari_vision.caffe.vfa.NNVFA;
 import org.bytedeco.javacpp.FloatPointer;
@@ -170,7 +171,6 @@ public class NNGridWorld extends NNVFA {
         return new NNGridWorld(this);
     }
 
-
     public static void main(String args[]) {
 
         NNGridWorld nnGridWorld = new NNGridWorld();
@@ -190,7 +190,7 @@ public class NNGridWorld extends NNVFA {
         }
 
         // setup helper
-        TrainingHelper helper = new TrainingHelper(deepQLearner, nnGridWorld, testPolicy, actionSet, nnGridWorld.env, nnGridWorld.env);
+        TrainingHelper helper = new SimpleTrainer(deepQLearner, nnGridWorld, testPolicy, actionSet, nnGridWorld.env);
         helper.setTotalTrainingFrames(10000000);
         helper.setTestInterval(50000);
         helper.setNumTestEpisodes(5);

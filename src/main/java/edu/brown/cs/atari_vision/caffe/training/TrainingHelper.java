@@ -11,6 +11,7 @@ import burlap.mdp.core.Action;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.environment.Environment;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
+import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
 import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.exampledomains.NNGridWorld;
 import edu.brown.cs.atari_vision.caffe.learners.DeepQLearner;
@@ -26,13 +27,14 @@ import java.util.Random;
 /**
  * Created by MelRod on 5/28/16.
  */
-public class TrainingHelper {
+public abstract class TrainingHelper {
 
     DeepQLearner learner;
     NNVFA vfa;
     Policy testPolicy;
-    Environment trainingEnv;
-    Environment testEnv;
+
+    Environment env;
+
     ActionSet actionSet;
 
     int maxEpisodeFrames = -1;
@@ -45,14 +47,16 @@ public class TrainingHelper {
     List<State> sampleStates;
     int numSampleStates = -1;
 
-    public TrainingHelper(DeepQLearner learner, NNVFA vfa, Policy testPolicy, ActionSet actionSet, Environment trainingEnv, Environment testEnv) {
+    public TrainingHelper(DeepQLearner learner, NNVFA vfa, Policy testPolicy, ActionSet actionSet, Environment env) {
         this.learner = learner;
         this.vfa = vfa;
         this.testPolicy = testPolicy;
-        this.trainingEnv = trainingEnv;
-        this.testEnv = testEnv;
+        this.env = env;
         this.actionSet = actionSet;
     }
+
+    public abstract void prepareForTraining();
+    public abstract void prepareForTesting();
 
     public void setNumSampleStates(int n) {
         numSampleStates = n;
@@ -80,7 +84,7 @@ public class TrainingHelper {
 
             while (sampleStates.size() < numSampleStates) {
                 // Run a random episode
-                Episode ea = runEpisode(randomPolicy, testEnv);
+                Episode ea = runEpisode(randomPolicy);
                 int episodeSize = ea.numTimeSteps();
 
                 // Random sample of unique states from the episode
@@ -102,8 +106,9 @@ public class TrainingHelper {
         while (frameCounter < totalTrainingFrames) {
             System.out.println(String.format("Training Episode %d at frame %d", episode, frameCounter));
 
-            trainingEnv.resetEnvironment();
-            Episode ea = learner.runLearningEpisode(trainingEnv, Math.min(totalTrainingFrames - frameCounter, maxEpisodeFrames));
+            prepareForTraining();
+            env.resetEnvironment();
+            Episode ea = learner.runLearningEpisode(env, Math.min(totalTrainingFrames - frameCounter, maxEpisodeFrames));
             double totalReward = 0;
             for (double r : ea.rewardSequence) {
                 totalReward += r;
@@ -113,6 +118,7 @@ public class TrainingHelper {
 
             testCountDown -= ea.numTimeSteps();
             if (testCountDown <= 0) {
+                prepareForTesting();
                 runTestSet();
                 testCountDown += testInterval;
             }
@@ -147,7 +153,7 @@ public class TrainingHelper {
         System.out.println("Running Test Set...");
         double totalTestReward = 0;
         for (int e = 1; e <= numTestEpisodes; e++) {
-            Episode ea = runEpisode(testPolicy, testEnv);
+            Episode ea = runEpisode(testPolicy);
 
             double totalReward = 0;
             for (double reward : ea.rewardSequence) {
@@ -162,7 +168,7 @@ public class TrainingHelper {
         System.out.println();
     }
 
-    public Episode runEpisode(Policy policy, Environment env) {
+    public Episode runEpisode(Policy policy) {
         env.resetEnvironment();
         Episode ea = new Episode();
 

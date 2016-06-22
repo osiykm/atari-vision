@@ -9,7 +9,6 @@ import edu.brown.cs.atari_vision.ale.agents.AbstractAgent;
 import edu.brown.cs.atari_vision.ale.agents.HumanAgent;
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainConstants;
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainGenerator;
-import edu.brown.cs.atari_vision.ale.burlap.ALEState;
 import edu.brown.cs.atari_vision.ale.burlap.BlankALEState;
 import edu.brown.cs.atari_vision.ale.burlap.alepolicies.NaiveSIPolicy;
 import edu.brown.cs.atari_vision.spaceinvaders.sarsa.AnnealedEpsilonGreedy;
@@ -88,19 +87,17 @@ public class RunAgents {
             if (agentName.equals("naive")) {
                 SIDomainGenerator domGen = new SIDomainGenerator();
                 OOSADomain domain = domGen.generateDomain();
-                ALEState initialState = new SIALEState();
 
                 Visualizer vis = null;
                 if (useGUI) {
                     vis = domGen.getVisualizer();
                 }
 
-                agent = new BurlapAgent(new NaiveSIPolicy(domain), domain, initialState, vis, rom, useGUI);
+                agent = new BurlapAgent(new NaiveSIPolicy(domain), domain, new SIALEStateGenerator(), vis, rom, useGUI);
                 agent.run(episodes);
             } else if (agentName.equals("sarsa")) {
                 SIDomainGenerator domGen = new SIDomainGenerator();
                 SADomain domain = domGen.generateDomain();
-                ALEState initialState = new SIALEState();
 
                 MultiObjectTiling tiling = createMultiObjectTiling();
 
@@ -111,7 +108,7 @@ public class RunAgents {
 //                Visualizer vis = domGen.getVisualizer();
                 Visualizer vis = null;
 
-                agent = new BurlapLearningAgent(learner, domain, initialState, vis, rom, useGUI);
+                agent = new BurlapLearningAgent(learner, domain, new SIALEStateGenerator(), vis, rom, useGUI);
                 agent.run(episodes);
 
                 // save VFA parameters
@@ -124,7 +121,6 @@ public class RunAgents {
             } else if (agentName.equals("sarsa_test")) {
                 SIDomainGenerator domGen = new SIDomainGenerator();
                 OOSADomain domain = domGen.generateDomain();
-                ALEState initialState = new SIALEState();
 
 
                 // load VFA parameters
@@ -142,7 +138,7 @@ public class RunAgents {
 //                    }
 
 //                    agent = new BurlapAgent(new EpsilonGreedy(learner, 0.1D), domain, initialState, vis, useGUI);
-                    agent = new BurlapLearningAgent(learner, domain, initialState, vis, rom, useGUI);
+                    agent = new BurlapLearningAgent(learner, domain, new SIALEStateGenerator(), vis, rom, useGUI);
                     agent.run(episodes);
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
@@ -158,9 +154,8 @@ public class RunAgents {
 
                 ALEDomainGenerator domGen = new ALEDomainGenerator();
                 SADomain domain = domGen.generateDomain();
-                ALEState initialState = new BlankALEState();
 
-                agent = new BurlapAgent(new RandomPolicy(domain), domain, initialState, null, rom, useGUI);
+                agent = new BurlapAgent(new RandomPolicy(domain), domain, new SIALEStateGenerator(), null, rom, useGUI);
                 agent.run(episodes);
             }
         }

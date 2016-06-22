@@ -15,7 +15,6 @@ import burlap.mdp.singleagent.SADomain;
 import burlap.mdp.singleagent.environment.Environment;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.ExperiencesMemory;
-import edu.brown.cs.atari_vision.caffe.experiencereplay.FixedSizeMemory;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameHistoryState;
 
 import java.util.ArrayList;
@@ -53,7 +52,7 @@ public abstract class ApproximateQLearning extends MDPSolver implements Learning
 	/**
 	 * The experiences memory used for updating Q-values
 	 */
-	protected ExperiencesMemory memory = new FixedSizeMemory(1);
+	protected ExperiencesMemory memory;
 
 
 	/**

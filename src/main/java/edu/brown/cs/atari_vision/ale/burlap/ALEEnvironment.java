@@ -18,7 +18,7 @@ import java.io.IOException;
 /**
  * @author Melrose Roderick
  */
-public class ALEEnvironment implements Environment {
+public class ALEEnvironment<StateT extends State> implements Environment {
 
     MovieGenerator movieGenerator;
     String movieOutputFile = null;//"./movies/naive/atari_";
@@ -30,56 +30,57 @@ public class ALEEnvironment implements Environment {
 
     /** State data **/
     Domain domain;
-    private ALEState currentState;
-    private int lastReward;
-    private boolean isTerminal;
+    protected ALEStateGenerator<StateT> stateGenerator;
+    protected StateT currentState;
+    protected int lastReward;
+    protected boolean isTerminal;
 
     /** Parameters */
-    private boolean normalizeReward;
-    private boolean useGUI;
-    private String rom;
+    protected boolean useGUI;
+    protected String rom;
 
-    public ALEEnvironment(Domain domain, ALEState initialState, String rom, boolean normalizeReward, boolean useGUI) {
-        this.rom = rom;
-        this.useGUI = useGUI;
-        if (this.useGUI) {
-            // Create the GUI
-            ui = new AgentGUI();
-        }
-
-        this.normalizeReward = normalizeReward;
-
-        // Create the relevant I/O objects
-        initIO(1);
-
-        // Set initial state
-        currentState = initialState;
-        this.domain = domain;
-        updateState();
+    public ALEEnvironment(Domain domain, ALEStateGenerator stateGenerator, String rom, boolean useGUI) {
+        this(domain, stateGenerator, rom, 1, useGUI);
     }
 
-    public ALEEnvironment(Domain domain, ALEState initialState, String rom, int frameSkip, boolean normalizeReward, boolean useGUI) {
+    public ALEEnvironment(Domain domain, ALEStateGenerator stateGenerator, String rom, int frameSkip, boolean useGUI) {
         this.rom = rom;
         this.useGUI = useGUI;
         if (this.useGUI) {
             // Create the GUI
             ui = new AgentGUI();
         }
-
-        this.normalizeReward = normalizeReward;
 
         // Create the relevant I/O objects
         initIO(frameSkip);
 
         // Set initial state
-        this.currentState = initialState;
+        this.stateGenerator = stateGenerator;
+        this.currentState = this.stateGenerator.initialState(io.getScreen());
         this.domain = domain;
-        updateState();
     }
 
-    private void updateState() {
-        // Obtain relevant data from ALE
-        boolean closed = io.observe();
+    private void recordScreen() {
+        // Save screen capture
+        if (movieGenerator != null) {
+            // TODO: implement
+//            movieGenerator.record(ScreenConverter.convert(screen));
+        }
+    }
+
+    @Override
+    public StateT currentObservation() {
+        return currentState;
+    }
+
+    @Override
+    public EnvironmentOutcome executeAction(Action a) {
+        // save start state
+        StateT startState = currentState;
+
+        // perform action
+        int action = Actions.map(a.actionName());
+        boolean closed = io.act(action);
         if (closed) {
             // the FIFO stream was closed
             // exit cleanly
@@ -100,43 +101,12 @@ public class ALEEnvironment implements Environment {
         RLData rlData = io.getRLData();
 
         // Update Environment State
-        currentState = currentState.updateStateWithScreen(domain, screen);
-        if (normalizeReward) {
-            if (rlData.reward > 0) {
-                lastReward = 1;
-            } else if (rlData.reward < 0) {
-                lastReward = -1;
-            } else {
-                lastReward = 0;
-            }
-        } else {
-            lastReward = rlData.reward;
-        }
+        lastReward = rlData.reward;
         isTerminal = rlData.isTerminal;
+        currentState = stateGenerator.nextState(screen, currentState, a, lastReward, isTerminal);
 
-        // Save screen capture
-        if (movieGenerator != null) {
-            // TODO: implement
-//            movieGenerator.record(ScreenConverter.convert(screen));
-        }
-    }
-
-    @Override
-    public State currentObservation() {
-        return currentState;
-    }
-
-    @Override
-    public EnvironmentOutcome executeAction(Action a) {
-        // save start state
-        ALEState startState = currentState;
-
-        // perform action
-        int action = Actions.map(a.actionName());
-        io.act(action);
-
-        // update state
-        updateState();
+        // Record Screen for movie
+//        recordScreen();
 
         return new EnvironmentOutcome(startState, a, currentState, lastReward, isInTerminalState());
     }
@@ -155,12 +125,14 @@ public class ALEEnvironment implements Environment {
     public void resetEnvironment() {
         // perform reset action
         io.act(Actions.map("system_reset"));
+        isTerminal = false;
 
         // reset initialState
-        currentState.reset();
+        currentState = stateGenerator.initialState(io.getScreen());
+    }
 
-        // update state
-        updateState();
+    public void setStateGenerator(ALEStateGenerator<StateT> stateGenerator) {
+        this.stateGenerator = stateGenerator;
     }
 
     public void die() {

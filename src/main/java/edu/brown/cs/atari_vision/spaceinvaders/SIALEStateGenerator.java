@@ -1,41 +1,40 @@
 package edu.brown.cs.atari_vision.spaceinvaders;
 
-
-import burlap.mdp.core.Domain;
+import burlap.mdp.core.Action;
 import burlap.mdp.core.oo.state.ObjectInstance;
-import burlap.mdp.core.oo.state.generic.GenericOOState;
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainConstants;
-import edu.brown.cs.atari_vision.ale.burlap.ALEState;
+import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
+import edu.brown.cs.atari_vision.ale.burlap.BlankALEState;
 import edu.brown.cs.atari_vision.spaceinvaders.cv.TargetedContourFinder;
 import edu.brown.cs.atari_vision.spaceinvaders.objects.AgentObject;
 import edu.brown.cs.atari_vision.spaceinvaders.objects.AlienObject;
 import edu.brown.cs.atari_vision.spaceinvaders.objects.BombObject;
 
-import org.bytedeco.javacpp.opencv_core.*;
-
+import static org.bytedeco.javacpp.opencv_core.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Created by MelRod on 3/18/16.
+ * Created by maroderi on 6/22/16.
  */
-public class SIALEState extends GenericOOState implements ALEState {
+public class SIALEStateGenerator implements ALEStateGenerator<BlankALEState> {
 
     public static final int X_BOMB_STITCH_THRESHOLD = 1;
     public static final int Y_BOMB_STITCH_THRESHOLD = 5;
 
-    Mat screen;
+    @Override
+    public BlankALEState initialState(Mat screen) {
+        return new BlankALEState();
+    }
 
     @Override
-    public ALEState updateStateWithScreen(Domain domain, Mat newScreen) {
-
-        SIALEState s = new SIALEState();
-        s.screen = newScreen;
+    public BlankALEState nextState(Mat screen, BlankALEState prevState, Action action, double reward, boolean terminated) {
+        BlankALEState s = new BlankALEState(screen);
 
         // Find sprites using TargetedContourFinder
-        Map<String, List<Point>> sprites = TargetedContourFinder.getTCF().findSprites(newScreen);
+        Map<String, List<Point>> sprites = TargetedContourFinder.getTCF().findSprites(screen);
 
         // add agent
         List<Point> agentLocs = sprites.get(ALEDomainConstants.CLASSAGENT);
@@ -59,9 +58,9 @@ public class SIALEState extends GenericOOState implements ALEState {
 
         // add bombs
         List<ObjectInstance> oldBombs = new ArrayList<>();
-        oldBombs.addAll(this.objectsOfClass(ALEDomainConstants.CLASS_BOMB_UNKNOWN));
-        oldBombs.addAll(this.objectsOfClass(ALEDomainConstants.CLASS_BOMB_AGENT));
-        oldBombs.addAll(this.objectsOfClass(ALEDomainConstants.CLASS_BOMB_ALIEN));
+        oldBombs.addAll(prevState.objectsOfClass(ALEDomainConstants.CLASS_BOMB_UNKNOWN));
+        oldBombs.addAll(prevState.objectsOfClass(ALEDomainConstants.CLASS_BOMB_AGENT));
+        oldBombs.addAll(prevState.objectsOfClass(ALEDomainConstants.CLASS_BOMB_ALIEN));
 
         for (Point point : sprites.get(ALEDomainConstants.CLASS_BOMB_UNKNOWN)) {
             ObjectInstance oldBomb = bombWithinThreshold(point, oldBombs);
@@ -91,16 +90,6 @@ public class SIALEState extends GenericOOState implements ALEState {
         }
 
         return s;
-    }
-
-    @Override
-    public ALEState reset() {
-        // TODO: implement
-        return this;
-    }
-
-    public Mat getScreen() {
-        return screen;
     }
 
     public ObjectInstance bombWithinThreshold(Point point, List<ObjectInstance> bombs) {

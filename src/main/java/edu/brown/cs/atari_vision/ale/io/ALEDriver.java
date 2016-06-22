@@ -120,6 +120,9 @@ public class ALEDriver {
         out.printf("%d,%d,%d,%d\n", updateScreen? 1:0, updateRam? 1:0, frameskip,
                 updateRLData? 1:0);
         out.flush();
+
+        // Initial observe
+        observe();
     }
 
     public int getFrameSkip() {
@@ -233,7 +236,8 @@ public class ALEDriver {
 
         sendAction(act);
 
-        return false;
+        // Record the new data
+        return observe();
     }
 
     /** Helper function to send out an action to ALE */

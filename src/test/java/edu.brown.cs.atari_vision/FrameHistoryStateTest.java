@@ -58,11 +58,11 @@ public class FrameHistoryStateTest {
 
 
         FrameExperienceMemory experienceMemory = new FrameExperienceMemory(5, 2, new TestPreprocessor(2));
-        FrameHistoryState state0 = new FrameHistoryState(experienceMemory);
-        FrameHistoryState state1 = (FrameHistoryState) state0.updateStateWithScreen(null, frame1);
-        FrameHistoryState state2 = (FrameHistoryState) state1.updateStateWithScreen(null, frame2);
-        FrameHistoryState state3 = (FrameHistoryState) state2.updateStateWithScreen(null, frame3);
-        FrameHistoryState state4 = (FrameHistoryState) state3.updateStateWithScreen(null, frame4);
+        FrameHistoryState state0 = experienceMemory.initialState(null);
+        FrameHistoryState state1 = experienceMemory.nextState(frame1, state0, null, 0, false);
+        FrameHistoryState state2 = experienceMemory.nextState(frame2, state1, null, 0, false);
+        FrameHistoryState state3 = experienceMemory.nextState(frame3, state2, null, 0, false);
+        FrameHistoryState state4 = experienceMemory.nextState(frame4, state3, null, 0, false);
 
         compare(state0.getInput(), new BytePointer[]{data0, data0}, 2);
         compare(state1.getInput(), new BytePointer[]{data0, data1}, 2);
@@ -70,9 +70,9 @@ public class FrameHistoryStateTest {
         compare(state3.getInput(), new BytePointer[]{data2, data3}, 2);
         compare(state4.getInput(), new BytePointer[]{data3, data4}, 2);
 
-        FrameHistoryState state5 = (FrameHistoryState) state4.updateStateWithScreen(null, frame5);
-        FrameHistoryState state6 = (FrameHistoryState) state5.updateStateWithScreen(null, frame6);
-        FrameHistoryState state7 = (FrameHistoryState) state6.updateStateWithScreen(null, frame7);
+        FrameHistoryState state5 = experienceMemory.nextState(frame5, state4, null, 0, false);
+        FrameHistoryState state6 = experienceMemory.nextState(frame6, state5, null, 0, false);
+        FrameHistoryState state7 = experienceMemory.nextState(frame7, state6, null, 0, false);
 
         compare(state3.getInput(), new BytePointer[]{data2, data3}, 2);
         compare(state4.getInput(), new BytePointer[]{data3, data4}, 2);
@@ -85,10 +85,10 @@ public class FrameHistoryStateTest {
     public void TestRandom() {
         int replaySize = 50;
         int history = 4;
-        int frameSize = 30;
+        int frameSize = 10;
 
         FrameExperienceMemory experienceMemory = new FrameExperienceMemory(replaySize, history, new TestPreprocessor(frameSize));
-        FrameHistoryState initialState = new FrameHistoryState(experienceMemory);
+        FrameHistoryState initialState = experienceMemory.initialState(null);
         BytePointer data0 = new BytePointer(history);
         for (int f = 0; f < frameSize; f++) {
             data0.position(f).put((byte)0);
@@ -119,7 +119,7 @@ public class FrameHistoryStateTest {
 
                 Mat frame = new Mat(1, frameSize, CV_8U, data);
 
-                FrameHistoryState state = (FrameHistoryState)prevState.updateStateWithScreen(null, frame);
+                FrameHistoryState state = experienceMemory.nextState(frame, prevState, null, 0, false);
                 prevState = state;
 
                 compare(state.getInput(), dataList.toArray(new BytePointer[history]), frameSize);

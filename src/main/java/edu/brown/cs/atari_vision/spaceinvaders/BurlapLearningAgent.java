@@ -3,7 +3,7 @@ package edu.brown.cs.atari_vision.spaceinvaders;
 import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.mdp.singleagent.SADomain;
 import burlap.visualizer.Visualizer;
-import edu.brown.cs.atari_vision.ale.burlap.ALEState;
+import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
 
 /**
  * Created by MelRod on 4/21/16.
@@ -12,8 +12,8 @@ public class BurlapLearningAgent extends BurlapAgent {
 
     LearningAgent learningAgent;
 
-    public BurlapLearningAgent(LearningAgent learningAgent, SADomain domain, ALEState initialState, Visualizer vis, String rom, boolean useGUI) {
-        super(null, domain, initialState, vis, rom, useGUI);
+    public BurlapLearningAgent(LearningAgent learningAgent, SADomain domain, ALEStateGenerator stateGenerator, Visualizer vis, String rom, boolean useGUI) {
+        super(null, domain, stateGenerator, vis, rom, useGUI);
 
         this.learningAgent = learningAgent;
     }
