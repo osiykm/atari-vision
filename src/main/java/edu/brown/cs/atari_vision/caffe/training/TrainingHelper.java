@@ -35,7 +35,7 @@ public class TrainingHelper {
     Environment testEnv;
     ActionSet actionSet;
 
-    int maxEpisodeFrames = 10000;
+    int maxEpisodeFrames = -1;
     int totalTrainingFrames = 10000000;
 
     int testInterval = 100000;
