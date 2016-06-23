@@ -18,6 +18,7 @@
 package edu.brown.cs.atari_vision.ale.gui;
 
 import edu.brown.cs.atari_vision.ale.screen.ColorPalette;
+import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;
 import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -35,8 +36,7 @@ public final class AgentGUI extends JFrame implements AbstractUI {
     /** An object that listens for key presses */
     protected final KeyboardControl keyboard;
     /** Used to convert ALE screen data to GUI images */
-    protected final OpenCVFrameConverter.ToMat frameConverter;
-    protected final Java2DFrameConverter imageConverter;
+    protected ScreenConverter screenConverter;
 
     /** Create a new GUI
      * 
@@ -44,8 +44,7 @@ public final class AgentGUI extends JFrame implements AbstractUI {
     public AgentGUI(){
 
         // Create an object to convert indexed images to Java images
-        frameConverter = new OpenCVFrameConverter.ToMat();
-        imageConverter = new Java2DFrameConverter();
+        screenConverter = new ScreenConverter();
 
         // Create the keyboard and image panel
         keyboard = new KeyboardControl();
@@ -68,7 +67,7 @@ public final class AgentGUI extends JFrame implements AbstractUI {
      */
     public void updateImage(Mat currentScreen) {
         // Convert the screen matrix to an image
-        BufferedImage img = imageConverter.convert(frameConverter.convert(currentScreen));
+        BufferedImage img = screenConverter.convert(currentScreen);
 
         // Provide the new image to the UI
         updateFrameCount();

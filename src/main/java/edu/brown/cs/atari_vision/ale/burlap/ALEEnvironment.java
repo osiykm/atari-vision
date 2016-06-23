@@ -11,6 +11,7 @@ import edu.brown.cs.atari_vision.ale.io.Actions;
 import edu.brown.cs.atari_vision.ale.io.RLData;
 import edu.brown.cs.atari_vision.ale.movie.MovieGenerator;
 import edu.brown.cs.atari_vision.ale.screen.NTSCPalette;
+import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;
 import org.bytedeco.javacpp.opencv_core.*;
 
 import java.io.IOException;
@@ -21,12 +22,13 @@ import java.io.IOException;
 public class ALEEnvironment<StateT extends State> implements Environment {
 
     MovieGenerator movieGenerator;
-    String movieOutputFile = null;//"./movies/naive/atari_";
 
     /** The UI used for displaying images and receiving actions */
     private AgentGUI ui;
     /** The I/O object used to communicate with ALE */
     private ALEDriver io;
+
+    protected ScreenConverter screenConverter;
 
     /** State data **/
     Domain domain;
@@ -54,17 +56,22 @@ public class ALEEnvironment<StateT extends State> implements Environment {
         // Create the relevant I/O objects
         initIO(frameSkip);
 
+        screenConverter = new ScreenConverter();
+
         // Set initial state
         this.stateGenerator = stateGenerator;
         this.currentState = this.stateGenerator.initialState(io.getScreen());
         this.domain = domain;
     }
 
-    private void recordScreen() {
+    public void startRecording(String movieOutputFile) {
+        movieGenerator = new MovieGenerator(movieOutputFile);
+    }
+
+    private void recordScreen(Mat screen) {
         // Save screen capture
         if (movieGenerator != null) {
-            // TODO: implement
-//            movieGenerator.record(ScreenConverter.convert(screen));
+            movieGenerator.record(screenConverter.convert(screen));
         }
     }
 
@@ -106,7 +113,7 @@ public class ALEEnvironment<StateT extends State> implements Environment {
         currentState = stateGenerator.nextState(screen, currentState, a, lastReward, isTerminal);
 
         // Record Screen for movie
-//        recordScreen();
+        recordScreen(screen);
 
         return new EnvironmentOutcome(startState, a, currentState, lastReward, isInTerminalState());
     }
@@ -161,11 +168,6 @@ public class ALEEnvironment<StateT extends State> implements Environment {
         catch (IOException e) {
             System.err.println ("Could not initialize pipes: "+e.getMessage());
             System.exit(-1);
-        }
-
-        // if we are saving the screen buffers, init relevant objects
-        if (movieOutputFile != null) {
-            movieGenerator = new MovieGenerator(movieOutputFile);
         }
     }
 }

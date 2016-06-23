@@ -1,22 +1,15 @@
 package edu.brown.cs.atari_vision.caffe.training;
 
-import burlap.behavior.policy.GreedyQPolicy;
 import burlap.behavior.policy.Policy;
 import burlap.behavior.policy.RandomPolicy;
 import burlap.behavior.singleagent.Episode;
-import burlap.behavior.singleagent.auxiliary.StateReachability;
-import burlap.behavior.singleagent.auxiliary.valuefunctionvis.ValueFunctionVisualizerGUI;
-import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.mdp.core.Action;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.environment.Environment;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
-import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
 import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
-import edu.brown.cs.atari_vision.caffe.exampledomains.NNGridWorld;
 import edu.brown.cs.atari_vision.caffe.learners.DeepQLearner;
-import edu.brown.cs.atari_vision.caffe.vfa.NNVFA;
-import org.bytedeco.javacpp.FloatPointer;
+import edu.brown.cs.atari_vision.caffe.vfa.DQN;
 
 import static org.bytedeco.javacpp.caffe.*;
 
@@ -30,7 +23,7 @@ import java.util.Random;
 public abstract class TrainingHelper {
 
     DeepQLearner learner;
-    NNVFA vfa;
+    DQN vfa;
     Policy testPolicy;
 
     Environment env;
@@ -47,7 +40,7 @@ public abstract class TrainingHelper {
     List<State> sampleStates;
     int numSampleStates = -1;
 
-    public TrainingHelper(DeepQLearner learner, NNVFA vfa, Policy testPolicy, ActionSet actionSet, Environment env) {
+    public TrainingHelper(DeepQLearner learner, DQN vfa, Policy testPolicy, ActionSet actionSet, Environment env) {
         this.learner = learner;
         this.vfa = vfa;
         this.testPolicy = testPolicy;
@@ -72,6 +65,10 @@ public abstract class TrainingHelper {
 
     public void setTestInterval(int i) {
         testInterval = i;
+    }
+
+    public void setMaxEpisodeFrames(int f) {
+        maxEpisodeFrames = f;
     }
 
     public void run() {

@@ -1,6 +1,5 @@
 package edu.brown.cs.atari_vision.caffe.preprocess;
 
-import edu.brown.cs.atari_vision.caffe.vfa.NNVFA;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
 import static org.bytedeco.javacpp.opencv_core.*;

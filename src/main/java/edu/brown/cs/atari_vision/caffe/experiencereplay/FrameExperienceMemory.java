@@ -5,11 +5,10 @@ import burlap.mdp.core.Action;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
 import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
 import edu.brown.cs.atari_vision.caffe.preprocess.PreProcessor;
-import edu.brown.cs.atari_vision.caffe.vfa.NNVFA;
+import edu.brown.cs.atari_vision.caffe.vfa.NNStateConverter;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -19,7 +18,7 @@ import static org.bytedeco.javacpp.opencv_core.*;
 /**
  * Created by maroderi on 6/20/16.
  */
-public class FrameExperienceMemory implements ExperiencesMemory, ALEStateGenerator<FrameHistoryState> {
+public class FrameExperienceMemory implements ExperiencesMemory, NNStateConverter<FrameHistoryState>, ALEStateGenerator<FrameHistoryState> {
 
     protected BytePointer frameHistory;
     protected PreProcessor preProcessor;
@@ -105,6 +104,7 @@ public class FrameExperienceMemory implements ExperiencesMemory, ALEStateGenerat
         return newState;
     }
 
+    @Override
     public void getStateInput(FrameHistoryState state, FloatPointer input) {
         long frameSize = preProcessor.outputSize();
         long index = state.index;

@@ -1,7 +1,7 @@
 layer {
-  name: "frames_input_layer"
+  name: "state_input_layer"
   type: "MemoryData"
-  top: "frames"
+  top: "states"
   top: "dummy1"
   memory_data_param {
     batch_size: 32
@@ -50,7 +50,7 @@ layer {
 layer {
   name: "conv1_layer"
   type: "Convolution"
-  bottom: "frames"
+  bottom: "states"
   top: "conv1"
   convolution_param {
     num_output: 32

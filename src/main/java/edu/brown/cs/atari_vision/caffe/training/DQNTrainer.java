@@ -9,14 +9,12 @@ import edu.brown.cs.atari_vision.ale.burlap.ALEEnvironment;
 import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
 import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
 import edu.brown.cs.atari_vision.ale.io.Actions;
-import edu.brown.cs.atari_vision.caffe.experiencereplay.FixedSizeMemory;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameExperienceMemory;
 import edu.brown.cs.atari_vision.caffe.learners.DeepQLearner;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameHistoryState;
 import edu.brown.cs.atari_vision.caffe.policies.AnnealedEpsilonGreedy;
 import edu.brown.cs.atari_vision.caffe.preprocess.DQNPreProcessor;
 import edu.brown.cs.atari_vision.caffe.vfa.DQN;
-import edu.brown.cs.atari_vision.caffe.vfa.NNVFA;
 import org.bytedeco.javacpp.Loader;
 
 import static org.bytedeco.javacpp.caffe.*;
@@ -26,6 +24,7 @@ import static org.bytedeco.javacpp.caffe.*;
  */
 public class DQNTrainer extends TrainingHelper {
 
+    static final String SOLVER_FILE = "dqn_solver.prototxt";
     static final String ROM = "pong.bin";
     static final boolean GUI = true;
 
@@ -41,33 +40,35 @@ public class DQNTrainer extends TrainingHelper {
 
 
 
-    protected ALEStateGenerator<FrameHistoryState> trainingStateGenerator;
-    protected ALEStateGenerator<FrameHistoryState> testStateGenerator;
+    protected FrameExperienceMemory trainingMemory;
+    protected FrameExperienceMemory testMemory;
 
-    public DQNTrainer(DeepQLearner learner, NNVFA vfa, Policy testPolicy, ActionSet actionSet, Environment env,
-                      ALEStateGenerator<FrameHistoryState> trainingStateGenerator,
-                      ALEStateGenerator<FrameHistoryState> testStateGenerator) {
+    public DQNTrainer(DeepQLearner learner, DQN vfa, Policy testPolicy, ActionSet actionSet, Environment env,
+                      FrameExperienceMemory trainingMemory,
+                      FrameExperienceMemory testMemory) {
         super(learner, vfa, testPolicy, actionSet, env);
 
-        this.trainingStateGenerator = trainingStateGenerator;
-        this.testStateGenerator = testStateGenerator;
+        this.trainingMemory = trainingMemory;
+        this.testMemory = testMemory;
     }
 
     @Override
     public void prepareForTraining() {
-        ((ALEEnvironment<FrameHistoryState>)this.env).setStateGenerator(trainingStateGenerator);
+        ((ALEEnvironment<FrameHistoryState>)this.env).setStateGenerator(trainingMemory);
+
+        vfa.stateConverter = trainingMemory;
     }
 
     @Override
     public void prepareForTesting() {
-        ((ALEEnvironment<FrameHistoryState>)this.env).setStateGenerator(trainingStateGenerator);
+        ((ALEEnvironment<FrameHistoryState>)this.env).setStateGenerator(testMemory);
+
+        vfa.stateConverter = testMemory;
     }
 
     public static void main(String[] args) {
 
         Loader.load(Caffe.class);
-
-
 
         ActionSet actionSet = Actions.pongActionSet();
 
@@ -79,11 +80,11 @@ public class DQNTrainer extends TrainingHelper {
 
         FrameExperienceMemory testExperienceMemory = new FrameExperienceMemory(maxHistoryLength, maxHistoryLength, new DQNPreProcessor());
 
-        DQN dqn = new DQN(actionSet, gamma);
+        DQN dqn = new DQN(SOLVER_FILE, actionSet, trainingExperienceMemory);
         Policy policy = new AnnealedEpsilonGreedy(dqn, epsilonStart, epsilonEnd, epsilonAnnealDuration);
 
         DeepQLearner deepQLearner = new DeepQLearner(domain, gamma, 50000, policy, dqn);
-        deepQLearner.setExperienceReplay(trainingExperienceMemory, NNVFA.BATCH_SIZE);
+        deepQLearner.setExperienceReplay(trainingExperienceMemory, dqn.batchSize);
 
         Policy testPolicy = new EpsilonGreedy(dqn, 0.05);
 

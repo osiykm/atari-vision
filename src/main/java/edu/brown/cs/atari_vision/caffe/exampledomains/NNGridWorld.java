@@ -2,11 +2,7 @@ package edu.brown.cs.atari_vision.caffe.exampledomains;
 
 import burlap.behavior.functionapproximation.ParametricFunction;
 import burlap.behavior.policy.EpsilonGreedy;
-import burlap.behavior.policy.GreedyQPolicy;
 import burlap.behavior.policy.Policy;
-import burlap.behavior.singleagent.auxiliary.StateReachability;
-import burlap.behavior.singleagent.auxiliary.valuefunctionvis.ValueFunctionVisualizerGUI;
-import burlap.behavior.valuefunction.QValue;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
 import burlap.domain.singleagent.gridworld.state.GridAgent;
@@ -15,13 +11,11 @@ import burlap.domain.singleagent.gridworld.state.GridWorldState;
 import burlap.mdp.auxiliary.common.SinglePFTF;
 import burlap.mdp.auxiliary.stateconditiontest.StateConditionTest;
 import burlap.mdp.auxiliary.stateconditiontest.TFGoalCondition;
-import burlap.mdp.core.Action;
 import burlap.mdp.core.TerminalFunction;
 import burlap.mdp.core.oo.propositional.PropositionalFunction;
 import burlap.mdp.core.oo.state.OOState;
 import burlap.mdp.core.oo.state.ObjectInstance;
 import burlap.mdp.core.state.State;
-import burlap.mdp.singleagent.SADomain;
 import burlap.mdp.singleagent.common.UniformCostRF;
 import burlap.mdp.singleagent.environment.Environment;
 import burlap.mdp.singleagent.environment.SimulatedEnvironment;
@@ -36,27 +30,18 @@ import edu.brown.cs.atari_vision.caffe.learners.DeepQLearner;
 import edu.brown.cs.atari_vision.caffe.policies.AnnealedEpsilonGreedy;
 import edu.brown.cs.atari_vision.caffe.training.SimpleTrainer;
 import edu.brown.cs.atari_vision.caffe.training.TrainingHelper;
-import edu.brown.cs.atari_vision.caffe.vfa.NNVFA;
+import edu.brown.cs.atari_vision.caffe.vfa.DQN;
+import edu.brown.cs.atari_vision.caffe.vfa.NNStateConverter;
 import org.bytedeco.javacpp.FloatPointer;
 
-import java.util.List;
-
-import static org.bytedeco.javacpp.caffe.*;
 
 /**
  * Created by MelRod on 5/29/16.
  */
-public class NNGridWorld extends NNVFA {
+public class NNGridWorld {
 
     static final String SOLVER_FILE = "grid_world_net_solver.prototxt";
 
-    static final String INPUT_NAME = "frames_input_layer";
-    static final String FILTER_NAME = "filter_input_layer";
-    static final String YS_NAME = "target_input_layer";
-
-    public static final String Q_VALUES_BLOB_NAME = "q_values";
-
-    static final String SNAPSHOT_FILE_NAME = "nnGridWorldSnapshot";
     static final boolean GUI = true;
 
     static ActionSet actionSet = new ActionSet(new String[]{
@@ -74,8 +59,9 @@ public class NNGridWorld extends NNVFA {
     public HashableStateFactory hashingFactory;
     public Environment env;
 
+    public DQN dqn;
+
     public NNGridWorld() {
-        super(actionSet, 0.99);
 
         //create the domain
         gwdg = new GridWorldDomain(11, 11);
@@ -97,89 +83,19 @@ public class NNGridWorld extends NNVFA {
         //set up the environment for learners algorithms
         env = new SimulatedEnvironment(domain, initialState);
 
-        constructNetwork();
-    }
-
-    protected NNGridWorld(NNGridWorld vfa) {
-        super(vfa);
-
-        this.gwdg = vfa.gwdg;
-        this.domain = vfa.domain;
-        this.rf = vfa.rf;
-        this.tf = vfa.tf;
-        this.goalCondition = vfa.goalCondition;
-        this.initialState = vfa.initialState;
-        this.hashingFactory = vfa.hashingFactory;
-        this.env = vfa.env;
-
-        constructNetwork();
-        updateParamsToMatch(vfa);
-    }
-
-    @Override
-    protected void constructNetwork() {
-
-        SolverParameter solver_param = new SolverParameter();
-        ReadProtoFromTextFileOrDie(SOLVER_FILE, solver_param);
-
-        if (solver_param.solver_mode() == SolverParameter_SolverMode_GPU) {
-            Caffe.set_mode(Caffe.GPU);
-        } else {
-            Caffe.set_mode(Caffe.CPU);
-        }
-
-        this.caffeSolver = FloatSolverRegistry.CreateSolver(solver_param);
-        this.caffeNet = caffeSolver.net();
-
-        this.inputLayer = new FloatMemoryDataLayer(caffeNet.layer_by_name(INPUT_NAME));
-        this.filterLayer = new FloatMemoryDataLayer(caffeNet.layer_by_name(FILTER_NAME));
-        this.yLayer = new FloatMemoryDataLayer(caffeNet.layer_by_name(YS_NAME));
-
-        this.primeStateInputs = (new FloatPointer(BATCH_SIZE * inputSize())).fill(0);
-        this.stateInputs = (new FloatPointer(BATCH_SIZE * inputSize())).fill(0);
-        this.dummyInputData = (new FloatPointer(BATCH_SIZE * inputSize())).fill(0);
-
-        this.qValuesBlob = caffeNet.blob_by_name(Q_VALUES_BLOB_NAME);
-    }
-
-    @Override
-    protected void convertStateToInput(State state, FloatPointer input) {
-        int width = gwdg.getWidth();
-        int height = gwdg.getHeight();
-
-        input.fill(0);
-
-        ObjectInstance agent = ((OOState)state).object(GridWorldDomain.CLASS_AGENT);
-        int x = (Integer)agent.get(GridWorldDomain.VAR_X);
-        int y = (Integer)agent.get(GridWorldDomain.VAR_Y);
-
-        input.put((long)(y*width + x), 1);
-    }
-
-    @Override
-    protected int inputSize() {
-        int width = gwdg.getWidth();
-        int height = gwdg.getHeight();
-
-        return width * height;
-    }
-
-    @Override
-    public ParametricFunction copy() {
-        return new NNGridWorld(this);
+        dqn = new DQN(SOLVER_FILE, actionSet, new NNGridStateConverter());
     }
 
     public static void main(String args[]) {
 
         NNGridWorld nnGridWorld = new NNGridWorld();
 
+        Policy policy = new AnnealedEpsilonGreedy(nnGridWorld.dqn, 1.0, 0.1, 1000000);
 
-        Policy policy = new AnnealedEpsilonGreedy(nnGridWorld, 1.0, 0.1, 1000000);
+        DeepQLearner deepQLearner = new DeepQLearner(nnGridWorld.domain, 0.99, 50000, policy, nnGridWorld.dqn);
+        deepQLearner.setExperienceReplay(new FixedSizeMemory(1000000), nnGridWorld.dqn.batchSize);
 
-        DeepQLearner deepQLearner = new DeepQLearner(nnGridWorld.domain, 0.99, 50000, policy, nnGridWorld);
-        deepQLearner.setExperienceReplay(new FixedSizeMemory(1000000), BATCH_SIZE);
-
-        Policy testPolicy = new EpsilonGreedy(nnGridWorld, 0.05);
+        Policy testPolicy = new EpsilonGreedy(nnGridWorld.dqn, 0.05);
 
         if (GUI) {
             VisualExplorer exp = new VisualExplorer(nnGridWorld.domain, nnGridWorld.env, GridWorldVisualizer.getVisualizer(nnGridWorld.gwdg.getMap()));
@@ -188,13 +104,31 @@ public class NNGridWorld extends NNVFA {
         }
 
         // setup helper
-        TrainingHelper helper = new SimpleTrainer(deepQLearner, nnGridWorld, testPolicy, actionSet, nnGridWorld.env);
-        helper.setTotalTrainingFrames(10000000);
-        helper.setTestInterval(50000);
+        TrainingHelper helper = new SimpleTrainer(deepQLearner, nnGridWorld.dqn, testPolicy, actionSet, nnGridWorld.env);
+        helper.setTotalTrainingFrames(50000000);
+        helper.setTestInterval(500000);
         helper.setNumTestEpisodes(5);
         helper.setNumSampleStates(1000);
+        helper.setMaxEpisodeFrames(10000);
 
         // run helper
         helper.run();
+    }
+
+    class NNGridStateConverter implements NNStateConverter<GridWorldState> {
+
+        @Override
+        public void getStateInput(GridWorldState state, FloatPointer input) {
+            int width = gwdg.getWidth();
+            int height = gwdg.getHeight();
+
+            input.fill(0);
+
+            ObjectInstance agent = state.object(GridWorldDomain.CLASS_AGENT);
+            int x = (Integer)agent.get(GridWorldDomain.VAR_X);
+            int y = (Integer)agent.get(GridWorldDomain.VAR_Y);
+
+            input.put((long)(y*width + x), 1);
+        }
     }
 }

@@ -1,79 +1,281 @@
 package edu.brown.cs.atari_vision.caffe.vfa;
 
+import burlap.behavior.functionapproximation.ParametricFunction;
+import burlap.behavior.valuefunction.QProvider;
+import burlap.behavior.valuefunction.QValue;
+import burlap.mdp.core.Action;
+import burlap.mdp.core.SimpleAction;
 import burlap.mdp.core.state.State;
+import burlap.mdp.singleagent.environment.EnvironmentOutcome;
 import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
-import edu.brown.cs.atari_vision.caffe.nnstate.NNState;
+import edu.brown.cs.atari_vision.caffe.visualizers.PongVisualizer;
 import org.bytedeco.javacpp.FloatPointer;
-import org.bytedeco.javacpp.Loader;
+
+import javax.swing.*;
 
 import static org.bytedeco.javacpp.caffe.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Created by MelRod on 5/24/16.
+ * Created by MelRod on 5/25/16.
  */
-public class DQN extends NNVFA {
+public class DQN implements ParametricFunction.ParametricStateActionFunction, QProvider {
 
-    static final String SOLVER_FILE = "dqn_solver.prototxt";
+    static JFrame pongVisualizer = PongVisualizer.createPongVisualizer();
 
-    static final String INPUT_NAME = "frames_input_layer";
-    static final String FILTER_NAME = "filter_input_layer";
-    static final String YS_NAME = "target_input_layer";
+    /** The GPU device to use */
+    public int gpuDevice = 0;
 
-    static final int GPU_DEVICE_ID = 0;
+    /** The batch size of the network */
+    public int batchSize;
 
-    public static final String Q_VALUES_BLOB_NAME = "q_values";
+    /** The input size of a single state */
+    public int inputSize;
 
-    public DQN(ActionSet actionSet, double gamma) {
-        super(actionSet, gamma);
+    /** The Caffe solver file */
+    public String solverFile;
+
+    /** The name of the state input layer in the Caffe net */
+    public String stateInputLayerName = "state_input_layer";
+
+    /** The name of the target input layer in the Caffe net */
+    public String targetInputLayerName = "target_input_layer";
+
+    /** The name of the action filter input layer in the Caffe net */
+    public String filterInputLayerName = "filter_input_layer";
+
+    /** The name of the q-value output blob in the Caffe net */
+    public String qValuesBlobName = "q_values";
+
+    /** An object to convert between BURLAP states and NN input */
+    public NNStateConverter stateConverter;
+
+
+    protected FloatNet caffeNet;
+    protected FloatSolver caffeSolver;
+
+    protected FloatMemoryDataLayer inputLayer;
+    protected FloatMemoryDataLayer filterLayer;
+    protected FloatMemoryDataLayer targetLayer;
+
+    protected FloatPointer stateInputs;
+    protected FloatPointer primeStateInputs;
+    protected FloatPointer dummyInputData;
+    protected FloatBlob qValuesBlob;
+
+    protected ActionSet actionSet;
+    protected double gamma;
+
+    public DQN(String caffeSolverFile, ActionSet actionSet, NNStateConverter stateConverter) {
+        this.solverFile = caffeSolverFile;
+        this.actionSet = actionSet;
+        this.stateConverter = stateConverter;
+
         constructNetwork();
     }
 
-    protected DQN(DQN dqn) {
-        super(dqn);
+    protected DQN(DQN vfa) {
+        this.gpuDevice = vfa.gpuDevice;
+
+        this.actionSet = vfa.actionSet;
+        this.stateConverter = vfa.stateConverter;
+        this.gamma = vfa.gamma;
+        this.inputSize = vfa.inputSize;
+
+        this.solverFile = vfa.solverFile;
+        this.stateInputLayerName = vfa.stateInputLayerName;
+        this.targetInputLayerName = vfa.targetInputLayerName;
+        this.filterInputLayerName = vfa.filterInputLayerName;
+        this.qValuesBlobName = vfa.qValuesBlobName;
 
         constructNetwork();
-        updateParamsToMatch(dqn);
+        updateParamsToMatch(vfa);
     }
 
-    @Override
     protected void constructNetwork() {
-
         SolverParameter solver_param = new SolverParameter();
-        ReadProtoFromTextFileOrDie(SOLVER_FILE, solver_param);
+        ReadProtoFromTextFileOrDie(solverFile, solver_param);
 
         if (solver_param.solver_mode() == SolverParameter_SolverMode_GPU) {
             Caffe.set_mode(Caffe.GPU);
-//            Caffe.SetDevice(GPU_DEVICE_ID);
+            Caffe.SetDevice(gpuDevice);
         } else {
             Caffe.set_mode(Caffe.CPU);
         }
 
+        // construct the solver and network from file
         this.caffeSolver = FloatSolverRegistry.CreateSolver(solver_param);
         this.caffeNet = caffeSolver.net();
 
-        this.inputLayer = new FloatMemoryDataLayer(caffeNet.layer_by_name(INPUT_NAME));
-        this.filterLayer = new FloatMemoryDataLayer(caffeNet.layer_by_name(FILTER_NAME));
-        this.yLayer = new FloatMemoryDataLayer(caffeNet.layer_by_name(YS_NAME));
+        // set the input layers
+        this.inputLayer = new FloatMemoryDataLayer(caffeNet.layer_by_name(stateInputLayerName));
+        this.filterLayer = new FloatMemoryDataLayer(caffeNet.layer_by_name(filterInputLayerName));
+        this.targetLayer = new FloatMemoryDataLayer(caffeNet.layer_by_name(targetInputLayerName));
 
-        this.primeStateInputs = (new FloatPointer(BATCH_SIZE * inputSize())).fill(0);
-        this.stateInputs = (new FloatPointer(BATCH_SIZE * inputSize())).fill(0);
-        this.dummyInputData = (new FloatPointer(BATCH_SIZE * inputSize())).fill(0);
+        // set local variables from network
+        this.batchSize = inputLayer.batch_size();
+        this.inputSize = inputLayer.width() * inputLayer.height() * inputLayer.channels();
 
-        this.qValuesBlob = caffeNet.blob_by_name(Q_VALUES_BLOB_NAME);
+        // create the data to store the inputs
+        this.primeStateInputs = (new FloatPointer(batchSize * inputSize)).fill(0);
+        this.stateInputs = (new FloatPointer(batchSize * inputSize)).fill(0);
+        this.dummyInputData = (new FloatPointer(batchSize * inputSize)).fill(0);
+
+        // set the qValues blob
+        this.qValuesBlob = caffeNet.blob_by_name(qValuesBlobName);
+    }
+
+    public void updateQFunction(List<EnvironmentOutcome> samples, DQN staleVfa) {
+        int sampleSize = samples.size();
+        if (sampleSize < batchSize) {
+            return;
+        }
+
+        // Fill in input arrays
+        for (int i = 0; i < sampleSize; i++) {
+            EnvironmentOutcome eo = samples.get(i);
+
+            int pos = i * inputSize;
+            FloatPointer inputPtr = new FloatPointer(stateInputs.position(pos).limit(pos + inputSize));
+            stateConverter.getStateInput(eo.o, inputPtr);
+
+            FloatPointer primeInputPtr = new FloatPointer(stateInputs.position(pos).limit(pos + inputSize));
+            stateConverter.getStateInput(eo.op, primeInputPtr);
+        }
+
+        // Forward pass states
+        staleVfa.inputDataIntoLayers(primeStateInputs.position(0), dummyInputData, dummyInputData);
+        staleVfa.caffeNet.ForwardPrefilled();
+
+        // Calculate target values
+        int numActions = actionSet.size();
+        FloatPointer ys = (new FloatPointer(sampleSize * numActions)).zero();
+        FloatPointer actionFilter = (new FloatPointer(sampleSize * numActions)).zero();
+        for (int i = 0; i < sampleSize; i++) {
+            EnvironmentOutcome eo = samples.get(i);
+            float maxQ = blobMax(staleVfa.qValuesBlob, i);
+
+            float y;
+            if (eo.terminated) {
+                y = (float)eo.r;
+            } else {
+                y = (float)(eo.r + gamma*maxQ);
+            }
+
+            int index = i*numActions + actionSet.map(eo.a.actionName());
+            ys.put(index, y);
+            actionFilter.put(index, 1);
+        }
+
+        // Backprop
+        inputDataIntoLayers(stateInputs.position(0), actionFilter, ys);
+        caffeSolver.Step(1);
+    }
+
+    public float blobMax(FloatBlob blob, int n) {
+        float max = Float.NEGATIVE_INFINITY;
+        for (int c = 0; c < blob.shape(1); c++) {
+            float num = blob.data_at(n, c, 0, 0);
+            if (max < num) {
+                max = num;
+            }
+        }
+        return max;
+    }
+
+    public void updateParamsToMatch(DQN vfa) {
+        FloatBlobSharedVector params = this.caffeNet.params();
+        FloatBlobSharedVector newParams = vfa.caffeNet.params();
+        for (int i = 0; i < params.size(); i++) {
+            params.get(i).CopyFrom(newParams.get(i));
+        }
+    }
+
+    public FloatBlob qValuesForState(State state) {
+        stateConverter.getStateInput(state, stateInputs.position(0));
+        inputDataIntoLayers(stateInputs, dummyInputData, dummyInputData);
+        caffeNet.ForwardPrefilled();
+        return qValuesBlob;
     }
 
     @Override
-    protected void convertStateToInput(State state, FloatPointer input) {
-        ((NNState)state).getInput(input);
+    public double evaluate(State state, Action abstractGroundedAction) {
+        FloatBlob output = qValuesForState(state);
+
+        int action = actionSet.map(abstractGroundedAction.actionName());
+        return output.data_at(0,action,0,0);
     }
 
     @Override
-    protected int inputSize() {
-        return 84*84*4;
+    public List<QValue> qValues(State state) {
+
+        FloatBlob qValues = qValuesForState(state);
+        int numActions = actionSet.size();
+
+        ArrayList<QValue> qValueList = new ArrayList<>(numActions);
+        for (int a = 0; a < numActions; a++) {
+            QValue q = new QValue(state, new SimpleAction(actionSet.get(a)), qValues.data_at(0, a, 0, 0));
+            qValueList.add(q);
+        }
+
+        // DEBUG
+        PongVisualizer.setQValues(qValueList);
+
+        return qValueList;
     }
 
     @Override
-    public ParametricStateActionFunction copy() {
+    public double qValue(State state, Action abstractGroundedAction) {
+        return evaluate(state, abstractGroundedAction);
+    }
+
+    @Override
+    public double value(State s) {
+        List<QValue> qs = this.qValues(s);
+        double max = Double.NEGATIVE_INFINITY;
+        for(QValue q : qs){
+            max = Math.max(max, q.q);
+        }
+        return max;
+    }
+
+    protected void inputDataIntoLayers(FloatPointer inputData, FloatPointer filterData, FloatPointer yData) {
+        inputLayer.Reset(inputData, dummyInputData, batchSize);
+        filterLayer.Reset(filterData, dummyInputData, batchSize);
+        targetLayer.Reset(yData, dummyInputData, batchSize);
+    }
+
+    // Loading
+    public void loadWeightsFrom(String fileName) {
+        caffeNet.CopyTrainedLayersFrom(fileName);
+    }
+
+    @Override
+    public ParametricFunction copy() {
         return new DQN(this);
+    }
+
+
+    // Unsupported Operations
+    @Override
+    public double getParameter(int i) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setParameter(int i, double v) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int numParameters() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void resetParameters() {
+        throw new UnsupportedOperationException();
     }
 }

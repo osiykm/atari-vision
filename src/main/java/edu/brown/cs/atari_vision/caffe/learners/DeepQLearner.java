@@ -1,16 +1,10 @@
 package edu.brown.cs.atari_vision.caffe.learners;
 
-import burlap.behavior.policy.GreedyQPolicy;
 import burlap.behavior.policy.Policy;
 import burlap.behavior.policy.RandomPolicy;
-import burlap.behavior.singleagent.auxiliary.StateReachability;
-import burlap.behavior.singleagent.auxiliary.valuefunctionvis.ValueFunctionVisualizerGUI;
-import burlap.domain.singleagent.gridworld.GridWorldDomain;
-import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.SADomain;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
-import edu.brown.cs.atari_vision.caffe.exampledomains.NNGridWorld;
-import edu.brown.cs.atari_vision.caffe.vfa.NNVFA;
+import edu.brown.cs.atari_vision.caffe.vfa.DQN;
 
 import java.util.List;
 
@@ -24,7 +18,7 @@ public class DeepQLearner extends ApproximateQLearning {
 
     public Policy trainingPolicy;
 
-    public DeepQLearner(SADomain domain, double gamma, int replayStartSize, Policy policy, NNVFA vfa) {
+    public DeepQLearner(SADomain domain, double gamma, int replayStartSize, Policy policy, DQN vfa) {
         super(domain, gamma, vfa);
 
         // Finds backup using previous parameters
@@ -59,13 +53,13 @@ public class DeepQLearner extends ApproximateQLearning {
             return;
         }
 
-        ((NNVFA)vfa).updateQFunction(samples, (NNVFA)staleVfa);
+        ((DQN)vfa).updateQFunction(samples, (DQN)staleVfa);
     }
 
     @Override
     public void updateStaleFunction() {
         if (this.staleDuration > 1) {
-            ((NNVFA)this.staleVfa).updateParamsToMatch((NNVFA)this.vfa);
+            ((DQN)this.staleVfa).updateParamsToMatch((DQN)this.vfa);
         } else {
             this.staleVfa = this.vfa;
         }
