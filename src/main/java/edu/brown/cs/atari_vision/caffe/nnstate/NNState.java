@@ -10,5 +10,5 @@ import static org.bytedeco.javacpp.caffe.*;
  */
 public interface NNState extends State {
 
-    FloatPointer getInput();
+    void getInput(FloatPointer input);
 }

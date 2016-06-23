@@ -199,8 +199,9 @@ public class ALEDriver {
             int tokenIndex = 0;
 
             // If necessary, first read the RAM data
-            if (updateRam)
+            if (updateRam) {
                 readRam(tokens[tokenIndex++]);
+            }
 
             // Then update the screen
             if (updateScreen) {
@@ -255,11 +256,9 @@ public class ALEDriver {
     public void readRLData(String line) {
         // Parse RL data
         // Format: <is-terminal>:<reward>\n
-        String[] tokens = line.split(",");
-
         // Parse the terminal bit
-        rlData.isTerminal = (Integer.parseInt(tokens[0]) == 1);
-        rlData.reward = Integer.parseInt(tokens[1]);
+        rlData.isTerminal = (Integer.parseInt(line.substring(0, 1)) == 1);
+        rlData.reward = Integer.parseInt(line.substring(2));
     }
 
     /** Reads the console RAM from a string
@@ -285,8 +284,10 @@ public class ALEDriver {
      * @param line The screen part of the string sent by ALE.
      */
     public void readScreenMatrix(String line) {
-        BytePointer buffer = screen.data();
+        BytePointer screenData = screen.data();
         int position = 0;
+
+        byte[] buffer = new byte[screen.rows() * screen.cols() * screen.channels()];
 
         int ptr = 0;
 
@@ -296,14 +297,16 @@ public class ALEDriver {
                 int v = byteAt(line, ptr);
 
                 Color c = colorPalette.get(v);
-                buffer.put(position, (byte)c.getBlue());
-                buffer.put(position + 1, (byte)c.getGreen());
-                buffer.put(position + 2, (byte)c.getRed());
+                buffer[position] = (byte)c.getBlue();
+                buffer[position + 1] = (byte)c.getGreen();
+                buffer[position + 2] = (byte)c.getRed();
 
                 position += 3;
 
                 ptr += 2;
             }
+
+        screenData.put(buffer);
     }
 
     /** Parses a hex byte in the given String, at position 'ptr'. */
@@ -322,8 +325,10 @@ public class ALEDriver {
     /** Read in a run-length encoded screen. ALE 0.3-0.4 */
     public void readScreenRLE(String line) {
 
-        BytePointer buffer = screen.data();
+        BytePointer screenData = screen.data();
         int position = 0;
+
+        byte[] buffer = new byte[screen.rows() * screen.cols() * screen.channels()];
 
         int ptr = 0;
 
@@ -335,12 +340,14 @@ public class ALEDriver {
 
             Color c = colorPalette.get(v);
             for (int i = 0; i < l; i++) {
-                buffer.put(position, (byte)c.getBlue());
-                buffer.put(position + 1, (byte)c.getGreen());
-                buffer.put(position + 2, (byte)c.getRed());
+                buffer[position] = (byte)c.getBlue();
+                buffer[position + 1] = (byte)c.getGreen();
+                buffer[position + 2] = (byte)c.getRed();
 
                 position += 3;
             }
         }
+
+        screenData.put(buffer);
     }
 }

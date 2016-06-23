@@ -5,10 +5,11 @@ import burlap.mdp.core.Action;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
 import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
 import edu.brown.cs.atari_vision.caffe.preprocess.PreProcessor;
+import edu.brown.cs.atari_vision.caffe.vfa.NNVFA;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
-import org.bytedeco.javacpp.opencv_core;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -104,32 +105,28 @@ public class FrameExperienceMemory implements ExperiencesMemory, ALEStateGenerat
         return newState;
     }
 
-    public FloatPointer getStateInput(FrameHistoryState state) {
+    public void getStateInput(FrameHistoryState state, FloatPointer input) {
         long frameSize = preProcessor.outputSize();
         long index = state.index;
         int historyLength = state.historyLength;
 
-        // Convert compressed frame data to CNN input
-        FloatPointer processedFrame = preProcessor.convertDataToInput(
-                frameHistory.position(index - (historyLength - 1)*frameSize),
-                historyLength);
-
-        // Take the correct number of previous frames from the history
-        FloatPointer input;
+        // Fill unused frames with 0s
         if (historyLength < maxHistoryLength) {
-            input = new FloatPointer(frameSize * maxHistoryLength);
             if (historyLength > 0) {
-                input.position((maxHistoryLength - historyLength)*frameSize).put(processedFrame.limit(historyLength * frameSize));
                 input.position(0).limit((maxHistoryLength - historyLength)*frameSize).zero();
                 input.limit(maxHistoryLength * frameSize);
             } else {
                 input.zero();
+                return;
             }
-        } else {
-            input = processedFrame;
         }
 
-        return input;
+        // Convert compressed frame data to CNN input
+        preProcessor.convertDataToInput(
+                frameHistory.position(index - (historyLength - 1)*frameSize),
+                input.position((maxHistoryLength - historyLength)*frameSize),
+                historyLength);
+        input.position(0);
     }
 
     @Override

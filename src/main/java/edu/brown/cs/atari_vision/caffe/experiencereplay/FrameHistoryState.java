@@ -31,8 +31,8 @@ public class FrameHistoryState implements NNState {
     }
 
     @Override
-    public FloatPointer getInput() {
-        return memory.getStateInput(this);
+    public void getInput(FloatPointer input) {
+        memory.getStateInput(this, input);
     }
 
     @Override

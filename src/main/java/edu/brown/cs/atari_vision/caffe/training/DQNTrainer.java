@@ -82,8 +82,7 @@ public class DQNTrainer extends TrainingHelper {
         DQN dqn = new DQN(actionSet, gamma);
         Policy policy = new AnnealedEpsilonGreedy(dqn, epsilonStart, epsilonEnd, epsilonAnnealDuration);
 
-        // DEBUG: should be 50,000
-        DeepQLearner deepQLearner = new DeepQLearner(domain, gamma, 500, policy, dqn);
+        DeepQLearner deepQLearner = new DeepQLearner(domain, gamma, 50000, policy, dqn);
         deepQLearner.setExperienceReplay(trainingExperienceMemory, NNVFA.BATCH_SIZE);
 
         Policy testPolicy = new EpsilonGreedy(dqn, 0.05);

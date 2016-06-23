@@ -234,21 +234,4 @@ public abstract class ApproximateQLearning extends MDPSolver implements Learning
 	}
 
 	public abstract void updateQFunction(List<EnvironmentOutcome> samples);
-
-
-
-	// DEBUG
-	public void checkOverlap() {
-		List<EnvironmentOutcome> outcomes = memory.sampleExperiences(10000000);
-
-		for (int a = 0; a < outcomes.size(); a++) {
-			for (int b = a + 1; b < outcomes.size(); b++) {
-				FrameHistoryState stateA = (FrameHistoryState) outcomes.get(a).o;
-				FrameHistoryState stateB = (FrameHistoryState) outcomes.get(b).o;
-				if (stateA.index == stateB.index) {
-					System.out.println("OVERLAP!!!!");
-				}
-			}
-		}
-	}
 }

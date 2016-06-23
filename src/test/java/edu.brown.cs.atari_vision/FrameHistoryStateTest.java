@@ -3,6 +3,7 @@ package edu.brown.cs.atari_vision;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameExperienceMemory;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameHistoryState;
 import edu.brown.cs.atari_vision.caffe.preprocess.PreProcessor;
+import edu.brown.cs.atari_vision.caffe.vfa.NNVFA;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
 
@@ -64,21 +65,21 @@ public class FrameHistoryStateTest {
         FrameHistoryState state3 = experienceMemory.nextState(frame3, state2, null, 0, false);
         FrameHistoryState state4 = experienceMemory.nextState(frame4, state3, null, 0, false);
 
-        compare(state0.getInput(), new BytePointer[]{data0, data0}, 2);
-        compare(state1.getInput(), new BytePointer[]{data0, data1}, 2);
-        compare(state2.getInput(), new BytePointer[]{data1, data2}, 2);
-        compare(state3.getInput(), new BytePointer[]{data2, data3}, 2);
-        compare(state4.getInput(), new BytePointer[]{data3, data4}, 2);
+        compare(state0, new BytePointer[]{data0, data0}, 2);
+        compare(state1, new BytePointer[]{data0, data1}, 2);
+        compare(state2, new BytePointer[]{data1, data2}, 2);
+        compare(state3, new BytePointer[]{data2, data3}, 2);
+        compare(state4, new BytePointer[]{data3, data4}, 2);
 
         FrameHistoryState state5 = experienceMemory.nextState(frame5, state4, null, 0, false);
         FrameHistoryState state6 = experienceMemory.nextState(frame6, state5, null, 0, false);
         FrameHistoryState state7 = experienceMemory.nextState(frame7, state6, null, 0, false);
 
-        compare(state3.getInput(), new BytePointer[]{data2, data3}, 2);
-        compare(state4.getInput(), new BytePointer[]{data3, data4}, 2);
-        compare(state5.getInput(), new BytePointer[]{data4, data5}, 2);
-        compare(state6.getInput(), new BytePointer[]{data5, data6}, 2);
-        compare(state7.getInput(), new BytePointer[]{data6, data7}, 2);
+        compare(state3, new BytePointer[]{data2, data3}, 2);
+        compare(state4, new BytePointer[]{data3, data4}, 2);
+        compare(state5, new BytePointer[]{data4, data5}, 2);
+        compare(state6, new BytePointer[]{data5, data6}, 2);
+        compare(state7, new BytePointer[]{data6, data7}, 2);
     }
 
     @Test
@@ -98,7 +99,7 @@ public class FrameHistoryStateTest {
         for (int h = 0; h < history; h++) {
             dataList.add(data0);
         }
-        compare(initialState.getInput(), dataList.toArray(new BytePointer[history]), frameSize);
+        compare(initialState, dataList.toArray(new BytePointer[history]), frameSize);
 
         List<List<BytePointer>> dataListList = new ArrayList<>();
 
@@ -122,7 +123,7 @@ public class FrameHistoryStateTest {
                 FrameHistoryState state = experienceMemory.nextState(frame, prevState, null, 0, false);
                 prevState = state;
 
-                compare(state.getInput(), dataList.toArray(new BytePointer[history]), frameSize);
+                compare(state, dataList.toArray(new BytePointer[history]), frameSize);
 
                 if (i < dataListList.size()) {
                     dataListList.set(i, new ArrayList<>(dataList));
@@ -133,13 +134,16 @@ public class FrameHistoryStateTest {
                 }
 
                 for (int k = 0; k < states.size(); k++) {
-                    compare(states.get(k).getInput(), dataListList.get(k).toArray(new BytePointer[history]), frameSize);
+                    compare(states.get(k), dataListList.get(k).toArray(new BytePointer[history]), frameSize);
                 }
             }
         }
     }
 
-    public void compare(FloatPointer p, BytePointer[] dataArray, long outputSize) {
+    public void compare(FrameHistoryState state, BytePointer[] dataArray, long outputSize) {
+        FloatPointer p = new FloatPointer(outputSize * dataArray.length);
+        state.getInput(p);
+
         int i = 0;
         for (BytePointer data : dataArray) {
             for (int k = 0; k < outputSize; k++) {
@@ -147,40 +151,6 @@ public class FrameHistoryStateTest {
                 i++;
             }
         }
-    }
-
-    // DEBUG
-    public static void print2D(BytePointer ptr, int rows, int cols, int n) {
-
-        ByteBuffer buffer = ptr.position(0).limit(ptr.capacity()).asBuffer();
-
-        for (int i = 0; i < n; i++) {
-            for (int r = 0; r < rows; r++) {
-                for (int c = 0; c < cols; c++) {
-                    System.out.print(String.format("%d ", buffer.get()));
-                }
-                System.out.println();
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
-
-    // DEBUG
-    public static void print2D(FloatPointer ptr, int rows, int cols, int n) {
-
-        FloatBuffer buffer = ptr.asBuffer();
-
-        for (int i = 0; i < n; i++) {
-            for (int r = 0; r < rows; r++) {
-                for (int c = 0; c < cols; c++) {
-                    System.out.print(String.format("%.2f ", buffer.get()));
-                }
-                System.out.println();
-            }
-            System.out.println();
-        }
-        System.out.println();
     }
 
 
@@ -197,14 +167,13 @@ public class FrameHistoryStateTest {
         }
 
         @Override
-        public FloatPointer convertDataToInput(BytePointer data, long size) {
+        public void convertDataToInput(BytePointer data, FloatPointer input, long size) {
             int dataSize = outputSize() * (int)size;
 
             Mat mat = new Mat(1, dataSize, CV_8U, data);
-            Mat floatMat = new Mat(1, dataSize, CV_32F);
+            Mat floatMat = new Mat(1, dataSize, CV_32F, (new BytePointer(input)).position(input.position() * input.sizeof()));
 
             mat.convertTo(floatMat, CV_32F, 1, 0);
-            return new FloatPointer(floatMat.data());
         }
 
         @Override

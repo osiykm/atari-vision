@@ -36,7 +36,6 @@ import java.util.List;
  */
 public abstract class NNVFA implements ParametricFunction.ParametricStateActionFunction, QProvider {
 
-    // DEBUG
     static JFrame pongVisualizer = PongVisualizer.createPongVisualizer();
 
     public static final int BATCH_SIZE = 32;
@@ -66,7 +65,7 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
 
     protected abstract void constructNetwork();
 
-    protected abstract FloatPointer convertStateToInput(State state);
+    protected abstract void convertStateToInput(State state, FloatPointer input);
 
     protected abstract int inputSize();
 
@@ -77,16 +76,19 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
             return;
         }
 
-        // Create input ndArrays
+        // Fill in input arrays
 
         int inputSize = inputSize();
 
         for (int i = 0; i < sampleSize; i++) {
             EnvironmentOutcome eo = samples.get(i);
 
-            stateInputs.position(i*inputSize).put(convertStateToInput(eo.o).limit(inputSize));
+            int pos = i * inputSize;
+            FloatPointer inputPtr = new FloatPointer(stateInputs.position(pos).limit(pos + inputSize));
+            convertStateToInput(eo.o, inputPtr);
 
-            primeStateInputs.position(i*inputSize).put(convertStateToInput(eo.op).limit(inputSize));
+            FloatPointer primeInputPtr = new FloatPointer(stateInputs.position(pos).limit(pos + inputSize));
+            convertStateToInput(eo.op, primeInputPtr);
         }
 
         // Forward pass states
@@ -96,6 +98,7 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
 
         int numActions = actionSet.size();
         FloatPointer ys = (new FloatPointer(sampleSize * numActions)).zero();
+        FloatPointer actionFilter = (new FloatPointer(sampleSize * numActions)).zero();
         for (int i = 0; i < sampleSize; i++) {
             EnvironmentOutcome eo = samples.get(i);
             float maxQ = blobMax(staleVfa.qValuesBlob, i);
@@ -109,24 +112,8 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
 
             int index = i*numActions + actionSet.map(eo.a.actionName());
             ys.put(index, y);
+            actionFilter.put(index, 1);
         }
-
-        FloatPointer actionFilter = new FloatPointer(sampleSize * actionSet.size());
-        for (int i = 0; i < sampleSize; i++) {
-            EnvironmentOutcome eo = samples.get(i);
-
-            int action = actionSet.map(eo.a.actionName());
-
-            int index = i*numActions;
-            for (int a = 0; a < numActions; a++) {
-                if (a == action) {
-                    actionFilter.put(index + a, 1);
-                } else {
-                    actionFilter.put(index + a, 0);
-                }
-            }
-        }
-
 
         // Backprop
         inputDataIntoLayers(stateInputs.position(0), actionFilter, ys);
@@ -145,7 +132,6 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
     }
 
     public void updateParamsToMatch(NNVFA vfa) {
-//        this.caffeNet.ShareTrainedLayersWith(vfa.caffeNet);
         FloatBlobSharedVector params = this.caffeNet.params();
         FloatBlobSharedVector newParams = vfa.caffeNet.params();
         for (int i = 0; i < params.size(); i++) {
@@ -154,9 +140,7 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
     }
 
     public FloatBlob qValuesForState(State state) {
-        int inputSize = inputSize();
-
-        stateInputs.position(0).put(convertStateToInput(state).limit(inputSize));
+        convertStateToInput(state, stateInputs.position(0));
         inputDataIntoLayers(stateInputs, dummyInputData, dummyInputData);
         caffeNet.ForwardPrefilled();
         return qValuesBlob;
@@ -212,73 +196,6 @@ public abstract class NNVFA implements ParametricFunction.ParametricStateActionF
     // Loading
     public void loadWeightsFrom(String fileName) {
         caffeNet.CopyTrainedLayersFrom(fileName);
-    }
-
-
-    // Debug methods
-    public static void print2D(FloatPointer ptr, int rows, int cols) {
-        print2D(ptr, rows, cols, 1);
-    }
-
-    public static void print2D(FloatPointer ptr, int rows, int cols, int n) {
-
-        FloatBuffer buffer = ptr.asBuffer();
-
-        for (int i = 0; i < n; i++) {
-            for (int r = 0; r < rows; r++) {
-                for (int c = 0; c < cols; c++) {
-                    System.out.print(String.format("%.2f ", buffer.get()));
-                }
-                System.out.println();
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
-
-    public static void printBlob(FloatBlob blob) {
-
-        for (int n = 0; n < blob.shape(0); n++) {
-            for (int c = 0; c < blob.shape(1); c++) {
-                if (blob.num_axes() > 3 && blob.shape(2) > 1) {
-                    for (int x = 0; x < blob.shape(2); x++) {
-                        for (int y = 0; y < blob.shape(3); y++) {
-                            System.out.print(blob.data_at(n, c, x, y) + " ");
-                        }
-                        System.out.println();
-                    }
-                    System.out.println();
-                } else {
-                    System.out.print(blob.data_at(n, c, 0, 0) + " ");
-//                System.out.print(String.format("%.2f ", blob.data_at(n, c, 0, 0)));
-                }
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
-
-    protected void printND(FloatPointer ptr, int[] dims) {
-
-        int[] index = new int[dims.length];
-
-        while (true) {
-            System.out.print(String.format("%.2f ", ptr.get()));
-
-            int i = 0;
-            for (; i < dims.length; i++) {
-                index[i]++;
-                if (index[i] >= dims[i]) {
-                    index[i] = 0;
-                    System.out.println();
-                } else {
-                    break;
-                }
-            }
-            if (i == dims.length) {
-                break;
-            }
-        }
     }
 
 

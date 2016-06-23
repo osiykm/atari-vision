@@ -108,12 +108,17 @@ public abstract class TrainingHelper {
 
             prepareForTraining();
             env.resetEnvironment();
+
+            long startTime = System.currentTimeMillis();
             Episode ea = learner.runLearningEpisode(env, Math.min(totalTrainingFrames - frameCounter, maxEpisodeFrames));
+            long endTime = System.currentTimeMillis();
+            double timeInterval = (endTime - startTime)/1000.0;
+
             double totalReward = 0;
             for (double r : ea.rewardSequence) {
                 totalReward += r;
             }
-            System.out.println(String.format("Episode reward: %.2f", totalReward));
+            System.out.println(String.format("Episode reward: %.2f -- %.1ffps", totalReward, ea.numTimeSteps()/timeInterval));
             System.out.println();
 
             testCountDown -= ea.numTimeSteps();

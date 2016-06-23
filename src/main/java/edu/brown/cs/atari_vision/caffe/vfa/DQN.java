@@ -19,6 +19,8 @@ public class DQN extends NNVFA {
     static final String FILTER_NAME = "filter_input_layer";
     static final String YS_NAME = "target_input_layer";
 
+    static final int GPU_DEVICE_ID = 0;
+
     public static final String Q_VALUES_BLOB_NAME = "q_values";
 
     public DQN(ActionSet actionSet, double gamma) {
@@ -41,6 +43,7 @@ public class DQN extends NNVFA {
 
         if (solver_param.solver_mode() == SolverParameter_SolverMode_GPU) {
             Caffe.set_mode(Caffe.GPU);
+//            Caffe.SetDevice(GPU_DEVICE_ID);
         } else {
             Caffe.set_mode(Caffe.CPU);
         }
@@ -60,8 +63,8 @@ public class DQN extends NNVFA {
     }
 
     @Override
-    protected FloatPointer convertStateToInput(State state) {
-        return ((NNState)state).getInput();
+    protected void convertStateToInput(State state, FloatPointer input) {
+        ((NNState)state).getInput(input);
     }
 
     @Override

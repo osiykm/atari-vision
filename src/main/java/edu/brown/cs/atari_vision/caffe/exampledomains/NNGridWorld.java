@@ -143,19 +143,17 @@ public class NNGridWorld extends NNVFA {
     }
 
     @Override
-    protected FloatPointer convertStateToInput(State state) {
+    protected void convertStateToInput(State state, FloatPointer input) {
         int width = gwdg.getWidth();
         int height = gwdg.getHeight();
 
-        FloatPointer input = (new FloatPointer(width * height)).fill(0);
+        input.fill(0);
 
         ObjectInstance agent = ((OOState)state).object(GridWorldDomain.CLASS_AGENT);
         int x = (Integer)agent.get(GridWorldDomain.VAR_X);
         int y = (Integer)agent.get(GridWorldDomain.VAR_Y);
 
         input.put((long)(y*width + x), 1);
-
-        return input;
     }
 
     @Override
