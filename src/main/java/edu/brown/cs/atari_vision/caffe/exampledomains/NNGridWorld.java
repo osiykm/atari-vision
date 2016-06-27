@@ -3,6 +3,7 @@ package edu.brown.cs.atari_vision.caffe.exampledomains;
 import burlap.behavior.functionapproximation.ParametricFunction;
 import burlap.behavior.policy.EpsilonGreedy;
 import burlap.behavior.policy.Policy;
+import burlap.behavior.singleagent.auxiliary.valuefunctionvis.ValueFunctionVisualizerGUI;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
 import burlap.domain.singleagent.gridworld.state.GridAgent;
@@ -61,7 +62,7 @@ public class NNGridWorld {
 
     public DQN dqn;
 
-    public NNGridWorld() {
+    public NNGridWorld(double gamma) {
 
         //create the domain
         gwdg = new GridWorldDomain(11, 11);
@@ -83,16 +84,18 @@ public class NNGridWorld {
         //set up the environment for learners algorithms
         env = new SimulatedEnvironment(domain, initialState);
 
-        dqn = new DQN(SOLVER_FILE, actionSet, new NNGridStateConverter());
+        dqn = new DQN(SOLVER_FILE, actionSet, new NNGridStateConverter(), gamma);
     }
 
     public static void main(String args[]) {
 
-        NNGridWorld nnGridWorld = new NNGridWorld();
+        double gamma = 0.99;
+
+        NNGridWorld nnGridWorld = new NNGridWorld(gamma);
 
         Policy policy = new AnnealedEpsilonGreedy(nnGridWorld.dqn, 1.0, 0.1, 1000000);
 
-        DeepQLearner deepQLearner = new DeepQLearner(nnGridWorld.domain, 0.99, 50000, policy, nnGridWorld.dqn);
+        DeepQLearner deepQLearner = new DeepQLearner(nnGridWorld.domain, gamma, 50000, policy, nnGridWorld.dqn);
         deepQLearner.setExperienceReplay(new FixedSizeMemory(1000000), nnGridWorld.dqn.batchSize);
 
         Policy testPolicy = new EpsilonGreedy(nnGridWorld.dqn, 0.05);

@@ -8,13 +8,25 @@ import burlap.mdp.core.SimpleAction;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
 import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
+import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;
+import edu.brown.cs.atari_vision.caffe.Debug;
+import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameExperienceMemory;
+import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameHistoryState;
 import edu.brown.cs.atari_vision.caffe.visualizers.PongVisualizer;
+import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
+import org.bytedeco.javacpp.opencv_core;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import static org.bytedeco.javacpp.caffe.*;
+import static org.bytedeco.javacpp.opencv_core.CV_32F;
+import static org.bytedeco.javacpp.opencv_core.CV_8U;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,10 +80,11 @@ public class DQN implements ParametricFunction.ParametricStateActionFunction, QP
     protected ActionSet actionSet;
     protected double gamma;
 
-    public DQN(String caffeSolverFile, ActionSet actionSet, NNStateConverter stateConverter) {
+    public DQN(String caffeSolverFile, ActionSet actionSet, NNStateConverter stateConverter, double gamma) {
         this.solverFile = caffeSolverFile;
         this.actionSet = actionSet;
         this.stateConverter = stateConverter;
+        this.gamma = gamma;
 
         constructNetwork();
     }
@@ -138,11 +151,9 @@ public class DQN implements ParametricFunction.ParametricStateActionFunction, QP
             EnvironmentOutcome eo = samples.get(i);
 
             int pos = i * inputSize;
-            FloatPointer inputPtr = new FloatPointer(stateInputs.position(pos).limit(pos + inputSize));
-            stateConverter.getStateInput(eo.o, inputPtr);
+            stateConverter.getStateInput(eo.o, stateInputs.position(pos));
 
-            FloatPointer primeInputPtr = new FloatPointer(stateInputs.position(pos).limit(pos + inputSize));
-            stateConverter.getStateInput(eo.op, primeInputPtr);
+            stateConverter.getStateInput(eo.op, primeStateInputs.position(pos));
         }
 
         // Forward pass states

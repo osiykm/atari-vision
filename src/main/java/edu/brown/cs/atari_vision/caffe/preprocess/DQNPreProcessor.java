@@ -11,12 +11,7 @@ import static org.bytedeco.javacpp.opencv_imgproc.*;
 public class DQNPreProcessor implements PreProcessor {
 
     static final int scaleWidth = 84;
-    static final int scaleHeight = 110;
-
-    static final int cropTop = 26;
-    static final int cropLeft = 0;
-    static final int cropWidth = 84;
-    static final int cropHeight = 84;
+    static final int scaleHeight = 84;
 
     public DQNPreProcessor() {
 
@@ -31,9 +26,7 @@ public class DQNPreProcessor implements PreProcessor {
         Mat downsample = new Mat();
         resize(gray, downsample, new Size(scaleWidth, scaleHeight));
 
-        Mat crop = downsample.apply(new Rect(cropLeft, cropTop, cropWidth, cropHeight));
-
-        return crop.data();
+        return downsample.data();
     }
 
     @Override
@@ -46,7 +39,7 @@ public class DQNPreProcessor implements PreProcessor {
         int dataSize = outputSize() * (int)size;
 
         Mat mat = new Mat(1, dataSize, CV_8U, data);
-        Mat floatMat = new Mat(1, dataSize, CV_32F, input);
+        Mat floatMat = new Mat(1, dataSize, CV_32F, (new BytePointer(input)).position(input.position() * input.sizeof()));
 
         mat.convertTo(floatMat, CV_32F, 1/255.0, 0);
     }

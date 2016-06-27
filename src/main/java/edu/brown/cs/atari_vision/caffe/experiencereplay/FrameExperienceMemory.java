@@ -20,7 +20,7 @@ import static org.bytedeco.javacpp.opencv_core.*;
  */
 public class FrameExperienceMemory implements ExperiencesMemory, NNStateConverter<FrameHistoryState>, ALEStateGenerator<FrameHistoryState> {
 
-    protected BytePointer frameHistory;
+    public BytePointer frameHistory;
     protected PreProcessor preProcessor;
     protected long currentFrameIndex;
 
@@ -110,11 +110,14 @@ public class FrameExperienceMemory implements ExperiencesMemory, NNStateConverte
         long index = state.index;
         int historyLength = state.historyLength;
 
+        long pos = input.position();
+        input.limit(pos + maxHistoryLength * frameSize);
+
         // Fill unused frames with 0s
         if (historyLength < maxHistoryLength) {
             if (historyLength > 0) {
-                input.position(0).limit((maxHistoryLength - historyLength)*frameSize).zero();
-                input.limit(maxHistoryLength * frameSize);
+                input.limit(pos + (maxHistoryLength - historyLength)*frameSize).zero();
+                input.limit(pos + maxHistoryLength * frameSize);
             } else {
                 input.zero();
                 return;
@@ -124,9 +127,9 @@ public class FrameExperienceMemory implements ExperiencesMemory, NNStateConverte
         // Convert compressed frame data to CNN input
         preProcessor.convertDataToInput(
                 frameHistory.position(index - (historyLength - 1)*frameSize),
-                input.position((maxHistoryLength - historyLength)*frameSize),
+                input.position(pos + (maxHistoryLength - historyLength)*frameSize),
                 historyLength);
-        input.position(0);
+        input.position(pos);
     }
 
     @Override

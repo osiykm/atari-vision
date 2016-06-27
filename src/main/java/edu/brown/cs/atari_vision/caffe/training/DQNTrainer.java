@@ -80,7 +80,7 @@ public class DQNTrainer extends TrainingHelper {
 
         FrameExperienceMemory testExperienceMemory = new FrameExperienceMemory(maxHistoryLength, maxHistoryLength, new DQNPreProcessor());
 
-        DQN dqn = new DQN(SOLVER_FILE, actionSet, trainingExperienceMemory);
+        DQN dqn = new DQN(SOLVER_FILE, actionSet, trainingExperienceMemory, gamma);
         Policy policy = new AnnealedEpsilonGreedy(dqn, epsilonStart, epsilonEnd, epsilonAnnealDuration);
 
         DeepQLearner deepQLearner = new DeepQLearner(domain, gamma, 50000, policy, dqn);

@@ -34,7 +34,7 @@ public class ALEEnvironment<StateT extends State> implements Environment {
     Domain domain;
     protected ALEStateGenerator<StateT> stateGenerator;
     protected StateT currentState;
-    protected int lastReward;
+    protected double lastReward;
     protected boolean isTerminal;
 
     /** Parameters */

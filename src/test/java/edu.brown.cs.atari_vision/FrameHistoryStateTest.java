@@ -24,6 +24,7 @@ import java.util.List;
  */
 public class FrameHistoryStateTest {
 
+    FloatPointer input;
 
 
     @Before
@@ -56,6 +57,8 @@ public class FrameHistoryStateTest {
         Mat frame7 = new Mat(1, 2, CV_8U, data7);
 
 
+        input = new FloatPointer(2 * 2);
+
         FrameExperienceMemory experienceMemory = new FrameExperienceMemory(5, 2, new TestPreprocessor(2));
         FrameHistoryState state0 = experienceMemory.initialState(null);
         FrameHistoryState state1 = experienceMemory.nextState(frame1, state0, null, 0, false);
@@ -85,6 +88,7 @@ public class FrameHistoryStateTest {
         int replaySize = 50;
         int history = 4;
         int frameSize = 10;
+        input = new FloatPointer(frameSize * history);
 
         FrameExperienceMemory experienceMemory = new FrameExperienceMemory(replaySize, history, new TestPreprocessor(frameSize));
         FrameHistoryState initialState = experienceMemory.initialState(null);
@@ -139,7 +143,6 @@ public class FrameHistoryStateTest {
     }
 
     public void compare(FrameHistoryState state, NNStateConverter<FrameHistoryState> stateConverter, BytePointer[]dataArray, long outputSize) {
-        FloatPointer input = new FloatPointer(outputSize * dataArray.length);
         stateConverter.getStateInput(state, input);
 
         int i = 0;

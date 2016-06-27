@@ -74,6 +74,7 @@ public abstract class TrainingHelper {
     public void run() {
         if (numSampleStates > 0) {
             System.out.println("Sampling random states");
+            prepareForTesting();
 
             // Take a random sample of states
             Policy randomPolicy = new RandomPolicy(actionSet.actionTypeList());
@@ -120,7 +121,6 @@ public abstract class TrainingHelper {
 
             testCountDown -= ea.numTimeSteps();
             if (testCountDown <= 0) {
-                prepareForTesting();
                 runTestSet();
                 testCountDown += testInterval;
             }
@@ -144,6 +144,8 @@ public abstract class TrainingHelper {
     }
 
     public void runTestSet() {
+
+        prepareForTesting();
 
         // Test the MaxQValues of the sample states
         if (sampleStates != null) {
