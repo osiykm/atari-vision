@@ -88,13 +88,8 @@ public class NaiveSIPolicy implements Policy {
     }
 
     @Override
-    public List<ActionProb> policyDistribution(State s) {
-        return null;
-    }
-
-    @Override
-    public boolean stochastic() {
-        return false;
+    public double actionProb(State s, Action a) {
+        return 0;
     }
 
     @Override

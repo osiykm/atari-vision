@@ -10,7 +10,7 @@ import java.util.Random;
 /**
  * @author James MacGlashan.
  */
-public class FixedSizeMemory implements ExperiencesMemory {
+public class FixedSizeMemory implements ExperienceMemory {
 
 	protected int next = 0;
 	protected EnvironmentOutcome[] memory;

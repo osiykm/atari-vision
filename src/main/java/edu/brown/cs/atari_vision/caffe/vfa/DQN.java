@@ -27,13 +27,14 @@ import static org.bytedeco.javacpp.opencv_core.CV_8U;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by MelRod on 5/25/16.
  */
-public class DQN implements ParametricFunction.ParametricStateActionFunction, QProvider {
+public class DQN implements ParametricFunction.ParametricStateActionFunction, QProvider, Serializable {
 
     static JFrame pongVisualizer = PongVisualizer.createPongVisualizer();
 
@@ -64,6 +65,10 @@ public class DQN implements ParametricFunction.ParametricStateActionFunction, QP
     /** An object to convert between BURLAP states and NN input */
     public NNStateConverter stateConverter;
 
+    public double gamma;
+
+    public ActionSet actionSet;
+
 
     protected FloatNet caffeNet;
     protected FloatSolver caffeSolver;
@@ -76,9 +81,6 @@ public class DQN implements ParametricFunction.ParametricStateActionFunction, QP
     protected FloatPointer primeStateInputs;
     protected FloatPointer dummyInputData;
     protected FloatBlob qValuesBlob;
-
-    protected ActionSet actionSet;
-    protected double gamma;
 
     public DQN(String caffeSolverFile, ActionSet actionSet, NNStateConverter stateConverter, double gamma) {
         this.solverFile = caffeSolverFile;
@@ -256,6 +258,19 @@ public class DQN implements ParametricFunction.ParametricStateActionFunction, QP
         inputLayer.Reset(inputData, dummyInputData, batchSize);
         filterLayer.Reset(filterData, dummyInputData, batchSize);
         targetLayer.Reset(yData, dummyInputData, batchSize);
+    }
+
+    /** Saves the experience memory, caffe solver state and weights, and metadata to disk */
+    public void saveLearningState(String filePrefix) {
+        stateConverter.saveMemoryState(filePrefix + "_state");
+
+        caffeSolver.Snapshot();
+    }
+
+    public void loadLearningState(String filePrefix, String solverStateFile) {
+        caffeSolver.Restore(solverStateFile);
+
+        stateConverter.loadMemoryState(filePrefix + "_state");
     }
 
     // Loading

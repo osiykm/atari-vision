@@ -133,5 +133,15 @@ public class NNGridWorld {
 
             input.put((long)(y*width + x), 1);
         }
+
+        @Override
+        public void saveMemoryState(String filePrefix) {
+
+        }
+
+        @Override
+        public void loadMemoryState(String filePrefix) {
+
+        }
     }
 }

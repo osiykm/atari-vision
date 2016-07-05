@@ -14,8 +14,7 @@ import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.SADomain;
 import burlap.mdp.singleagent.environment.Environment;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
-import edu.brown.cs.atari_vision.caffe.experiencereplay.ExperiencesMemory;
-import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameHistoryState;
+import edu.brown.cs.atari_vision.caffe.experiencereplay.ExperienceMemory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +51,7 @@ public abstract class ApproximateQLearning extends MDPSolver implements Learning
 	/**
 	 * The experiences memory used for updating Q-values
 	 */
-	protected ExperiencesMemory memory;
+	protected ExperienceMemory memory;
 
 
 	/**
@@ -101,7 +100,7 @@ public abstract class ApproximateQLearning extends MDPSolver implements Learning
 	}
 
 
-	public void setExperienceReplay(ExperiencesMemory memory, int numReplay){
+	public void setExperienceReplay(ExperienceMemory memory, int numReplay){
 		this.memory = memory;
 		this.numReplay = numReplay;
 	}
@@ -234,4 +233,9 @@ public abstract class ApproximateQLearning extends MDPSolver implements Learning
 	}
 
 	public abstract void updateQFunction(List<EnvironmentOutcome> samples);
+
+	public void restartFrom(int stepNumber) {
+		totalSteps = stepNumber;
+		updateStaleFunction();
+	}
 }

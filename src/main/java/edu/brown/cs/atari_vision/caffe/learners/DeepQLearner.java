@@ -65,4 +65,18 @@ public class DeepQLearner extends ApproximateQLearning {
         }
         this.stepsSinceStale = 1;
     }
+
+    @Override
+    public void restartFrom(int steps) {
+        super.restartFrom(steps);
+
+        if (runningRandomPolicy) {
+            if (totalSteps >= replayStartSize) {
+                System.out.println("Replay sufficiently filled. Beginning training...");
+
+                setLearningPolicy(trainingPolicy);
+                runningRandomPolicy = false;
+            }
+        }
+    }
 }

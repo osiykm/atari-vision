@@ -13,7 +13,11 @@ import edu.brown.cs.atari_vision.caffe.vfa.DQN;
 
 import static org.bytedeco.javacpp.caffe.*;
 
+import java.io.*;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -36,9 +40,16 @@ public abstract class TrainingHelper {
     int testInterval = 100000;
     int numTestEpisodes = 10;
 
+    String snapshotPrefix;
+    int snapshotInterval = -1;
+
 
     List<State> sampleStates;
     int numSampleStates = -1;
+
+    int frameCounter;
+    int episodeCounter;
+
 
     public TrainingHelper(DeepQLearner learner, DQN vfa, Policy testPolicy, ActionSet actionSet, Environment env) {
         this.learner = learner;
@@ -46,6 +57,9 @@ public abstract class TrainingHelper {
         this.testPolicy = testPolicy;
         this.env = env;
         this.actionSet = actionSet;
+
+        this.frameCounter = 0;
+        this.episodeCounter = 0;
     }
 
     public abstract void prepareForTraining();
@@ -69,6 +83,11 @@ public abstract class TrainingHelper {
 
     public void setMaxEpisodeFrames(int f) {
         maxEpisodeFrames = f;
+    }
+
+    public void enableSnapshots(String snapshotPrefix, int snapshotInterval) {
+        this.snapshotPrefix = snapshotPrefix;
+        this.snapshotInterval = snapshotInterval;
     }
 
     public void run() {
@@ -96,13 +115,11 @@ public abstract class TrainingHelper {
             querySampleQs();
         }
 
-        int frameCounter = 0;
-        int episode = 0;
-
         int testCountDown = testInterval;
+        int snapshotCountDown = snapshotInterval;
 
         while (frameCounter < totalTrainingFrames) {
-            System.out.println(String.format("Training Episode %d at frame %d", episode, frameCounter));
+            System.out.println(String.format("Training Episode %d at frame %d", episodeCounter, frameCounter));
 
             prepareForTraining();
             env.resetEnvironment();
@@ -126,7 +143,14 @@ public abstract class TrainingHelper {
             }
 
             frameCounter += ea.numTimeSteps();
-            episode++;
+            episodeCounter++;
+            if (snapshotPrefix != null) {
+                snapshotCountDown -= ea.numTimeSteps();
+                if (snapshotCountDown <= 0) {
+                    saveLearningState(snapshotPrefix);
+                    snapshotCountDown += snapshotInterval;
+                }
+            }
         }
 
         System.out.println("Done Training!");
@@ -185,8 +209,49 @@ public abstract class TrainingHelper {
             ea.transition(eo.a, eo.op, eo.r);
 
             eFrameCounter++;
+
+            // DEBUG
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
         }
 
         return ea;
+    }
+
+    public void saveLearningState(String filePrefix) {
+
+        String trainerDataFilename = filePrefix + "_trainer.data";
+        HashMap<String, Object> trainerData = new HashMap<>();
+        trainerData.put("frameCounter", frameCounter);
+        trainerData.put("episodeCounter", episodeCounter);
+        try (ObjectOutputStream objOut = new ObjectOutputStream(new FileOutputStream(trainerDataFilename))) {
+            objOut.writeObject(trainerData);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        vfa.saveLearningState(filePrefix);
+    }
+
+    public void loadLearningState(String filePrefix, String solverStateFile) {
+
+        String trainerDataFilename = filePrefix + "_trainer.data";
+        try (ObjectInputStream objIn = new ObjectInputStream(new FileInputStream(trainerDataFilename))) {
+            HashMap<String, Object> trainerData = (HashMap<String, Object>) objIn.readObject();
+
+            this.frameCounter = (Integer)trainerData.get("frameCounter");
+            this.episodeCounter = (Integer)trainerData.get("episodeCounter");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        vfa.loadLearningState(filePrefix, solverStateFile);
+
+        learner.restartFrom(this.frameCounter);
     }
 }

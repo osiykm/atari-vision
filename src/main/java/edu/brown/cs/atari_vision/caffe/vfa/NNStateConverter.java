@@ -11,4 +11,7 @@ import static org.bytedeco.javacpp.caffe.*;
 public interface NNStateConverter<StateT extends State> {
 
     void getStateInput(StateT state, FloatPointer input);
+
+    void saveMemoryState(String filePrefix);
+    void loadMemoryState(String filePrefix);
 }

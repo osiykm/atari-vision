@@ -1,5 +1,7 @@
 package edu.brown.cs.atari_vision;
 
+import burlap.mdp.core.Action;
+import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameExperienceMemory;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameHistoryState;
 import edu.brown.cs.atari_vision.caffe.preprocess.PreProcessor;
@@ -59,12 +61,15 @@ public class FrameHistoryStateTest {
 
         input = new FloatPointer(2 * 2);
 
-        FrameExperienceMemory experienceMemory = new FrameExperienceMemory(5, 2, new TestPreprocessor(2));
+        ActionSet actionSet = new ActionSet(new String[]{"Action0"});
+        Action action0 = actionSet.getAction(0);
+
+        FrameExperienceMemory experienceMemory = new FrameExperienceMemory(5, 2, new TestPreprocessor(2), actionSet);
         FrameHistoryState state0 = experienceMemory.initialState(null);
-        FrameHistoryState state1 = experienceMemory.nextState(frame1, state0, null, 0, false);
-        FrameHistoryState state2 = experienceMemory.nextState(frame2, state1, null, 0, false);
-        FrameHistoryState state3 = experienceMemory.nextState(frame3, state2, null, 0, false);
-        FrameHistoryState state4 = experienceMemory.nextState(frame4, state3, null, 0, false);
+        FrameHistoryState state1 = experienceMemory.nextState(frame1, state0, action0, 0, false);
+        FrameHistoryState state2 = experienceMemory.nextState(frame2, state1, action0, 0, false);
+        FrameHistoryState state3 = experienceMemory.nextState(frame3, state2, action0, 0, false);
+        FrameHistoryState state4 = experienceMemory.nextState(frame4, state3, action0, 0, false);
 
         compare(state0, experienceMemory, new BytePointer[]{data0, data0}, 2);
         compare(state1, experienceMemory, new BytePointer[]{data0, data1}, 2);
@@ -72,9 +77,9 @@ public class FrameHistoryStateTest {
         compare(state3, experienceMemory, new BytePointer[]{data2, data3}, 2);
         compare(state4, experienceMemory, new BytePointer[]{data3, data4}, 2);
 
-        FrameHistoryState state5 = experienceMemory.nextState(frame5, state4, null, 0, false);
-        FrameHistoryState state6 = experienceMemory.nextState(frame6, state5, null, 0, false);
-        FrameHistoryState state7 = experienceMemory.nextState(frame7, state6, null, 0, false);
+        FrameHistoryState state5 = experienceMemory.nextState(frame5, state4, action0, 0, false);
+        FrameHistoryState state6 = experienceMemory.nextState(frame6, state5, action0, 0, false);
+        FrameHistoryState state7 = experienceMemory.nextState(frame7, state6, action0, 0, false);
 
         compare(state3, experienceMemory, new BytePointer[]{data2, data3}, 2);
         compare(state4, experienceMemory, new BytePointer[]{data3, data4}, 2);
@@ -90,7 +95,10 @@ public class FrameHistoryStateTest {
         int frameSize = 10;
         input = new FloatPointer(frameSize * history);
 
-        FrameExperienceMemory experienceMemory = new FrameExperienceMemory(replaySize, history, new TestPreprocessor(frameSize));
+        ActionSet actionSet = new ActionSet(new String[]{"Action0"});
+        Action action0 = actionSet.getAction(0);
+
+        FrameExperienceMemory experienceMemory = new FrameExperienceMemory(replaySize, history, new TestPreprocessor(frameSize), actionSet);
         FrameHistoryState initialState = experienceMemory.initialState(null);
         BytePointer data0 = new BytePointer(history);
         for (int f = 0; f < frameSize; f++) {
@@ -122,7 +130,7 @@ public class FrameHistoryStateTest {
 
                 Mat frame = new Mat(1, frameSize, CV_8U, data);
 
-                FrameHistoryState state = experienceMemory.nextState(frame, prevState, null, 0, false);
+                FrameHistoryState state = experienceMemory.nextState(frame, prevState, action0, 0, false);
                 prevState = state;
 
                 compare(state, experienceMemory, dataList.toArray(new BytePointer[history]), frameSize);

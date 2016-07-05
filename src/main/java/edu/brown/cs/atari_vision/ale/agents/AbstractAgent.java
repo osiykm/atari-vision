@@ -110,10 +110,6 @@ public abstract class AbstractAgent {
 
         // Loop until we're done
         while (!done) {
-            // Obtain relevant data from ALE
-            done = io.observe();
-            // The I/O channel will return true once EOF is received
-            if (done) break;
             
             // Obtain the screen matrix
             Mat screen = io.getScreen();

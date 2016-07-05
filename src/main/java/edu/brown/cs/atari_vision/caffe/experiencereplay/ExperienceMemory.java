@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * @author James MacGlashan.
  */
-public interface ExperiencesMemory {
+public interface ExperienceMemory {
 	void addExperience(EnvironmentOutcome eo);
 	List<EnvironmentOutcome> sampleExperiences(int n);
 	void resetMemory();

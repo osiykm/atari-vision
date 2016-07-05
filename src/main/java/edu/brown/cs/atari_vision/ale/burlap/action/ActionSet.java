@@ -33,6 +33,10 @@ public class ActionSet {
         return actions[i];
     }
 
+    public Action getAction(int i) {
+        return new SimpleAction(actions[i]);
+    }
+
     public int map(String action) {
         return actionMap.get(action);
     }
