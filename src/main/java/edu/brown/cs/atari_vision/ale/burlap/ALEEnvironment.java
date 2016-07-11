@@ -156,13 +156,12 @@ public class ALEEnvironment<StateT extends State> implements Environment {
 
         try {
             // Initialize the pipes; use named pipes if requested
-            io = new ALEDriver(rom);
+            io = new ALEDriver(rom, frameSkip);
 
             // Determine which information to request from ALE
             io.setUpdateScreen(true);
             io.setUpdateRL(true);
             io.setUpdateRam(false);
-            io.setFrameSkip(frameSkip);
             io.initPipes();
         }
         catch (IOException e) {

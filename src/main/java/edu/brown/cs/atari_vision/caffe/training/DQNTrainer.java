@@ -78,10 +78,11 @@ public class DQNTrainer extends TrainingHelper {
         FrameExperienceMemory trainingExperienceMemory = new FrameExperienceMemory(experienceMemoryLength, maxHistoryLength, new DQNPreProcessor(), actionSet);
         ALEEnvironment env = new ALEEnvironment(domain, trainingExperienceMemory, ROM, frameSkip, GUI);
 
-        FrameExperienceMemory testExperienceMemory = new FrameExperienceMemory(maxHistoryLength, maxHistoryLength, new DQNPreProcessor(), actionSet);
+        FrameExperienceMemory testExperienceMemory = new FrameExperienceMemory(10000, maxHistoryLength, new DQNPreProcessor(), actionSet);
 
         DQN dqn = new DQN(SOLVER_FILE, actionSet, trainingExperienceMemory, gamma);
-        Policy policy = new AnnealedEpsilonGreedy(dqn, epsilonStart, epsilonEnd, epsilonAnnealDuration);
+//        Policy policy = new AnnealedEpsilonGreedy(dqn, epsilonStart, epsilonEnd, epsilonAnnealDuration);
+        Policy policy = new EpsilonGreedy(dqn, epsilonEnd);
 
         DeepQLearner deepQLearner = new DeepQLearner(domain, gamma, 50000, policy, dqn);
         deepQLearner.setExperienceReplay(trainingExperienceMemory, dqn.batchSize);
@@ -92,12 +93,12 @@ public class DQNTrainer extends TrainingHelper {
         TrainingHelper helper = new DQNTrainer(deepQLearner, dqn, testPolicy, actionSet, env, trainingExperienceMemory, testExperienceMemory);
         helper.setTotalTrainingFrames(50000000);
         helper.setTestInterval(100000);
-        helper.setNumTestEpisodes(3);
-        helper.setMaxEpisodeFrames(200000);
+        helper.setNumTestEpisodes(10);
+        helper.setMaxEpisodeFrames(20000);
         helper.setNumSampleStates(1000);
         helper.enableSnapshots("networks/dqn/pong", 1000000);
 
-//        helper.loadLearningState("networks/dqn/pong", "_iter_0.solverstate");
+        helper.loadLearningState("networks/dqn/pong", "_iter_14977050.solverstate");
 
         // run helper
         helper.run();

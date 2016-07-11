@@ -136,12 +136,6 @@ public abstract class TrainingHelper {
             System.out.println(String.format("Episode reward: %.2f -- %.1ffps", totalReward, ea.numTimeSteps()/timeInterval));
             System.out.println();
 
-            testCountDown -= ea.numTimeSteps();
-            if (testCountDown <= 0) {
-                runTestSet();
-                testCountDown += testInterval;
-            }
-
             frameCounter += ea.numTimeSteps();
             episodeCounter++;
             if (snapshotPrefix != null) {
@@ -150,6 +144,12 @@ public abstract class TrainingHelper {
                     saveLearningState(snapshotPrefix);
                     snapshotCountDown += snapshotInterval;
                 }
+            }
+
+            testCountDown -= ea.numTimeSteps();
+            if (testCountDown <= 0) {
+                runTestSet();
+                testCountDown += testInterval;
             }
         }
 
@@ -209,13 +209,6 @@ public abstract class TrainingHelper {
             ea.transition(eo.a, eo.op, eo.r);
 
             eFrameCounter++;
-
-            // DEBUG
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
-            }
         }
 
         return ea;

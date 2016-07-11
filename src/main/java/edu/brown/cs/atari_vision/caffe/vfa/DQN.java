@@ -70,7 +70,7 @@ public class DQN implements ParametricFunction.ParametricStateActionFunction, QP
     public ActionSet actionSet;
 
 
-    protected FloatNet caffeNet;
+    public FloatNet caffeNet;
     protected FloatSolver caffeSolver;
 
     protected FloatMemoryDataLayer inputLayer;

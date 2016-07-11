@@ -189,7 +189,7 @@ public class FrameExperienceMemory implements ExperienceMemory, NNStateConverter
             byte[] buffer = new byte[10000000];
             int numRead;
             while ((numRead = historyIn.read(buffer)) != -1) {
-                this.frameHistory.position(pos).limit(pos + numRead).put(buffer);
+                this.frameHistory.position(pos).put(buffer, 0, numRead);
                 pos += numRead;
             }
 

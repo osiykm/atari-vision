@@ -54,6 +54,11 @@ public class ALEDriver {
     protected boolean useRLE = true;
 
     public ALEDriver(String rom) {
+        this(rom, 1);
+    }
+
+    public ALEDriver(String rom, int frameskip) {
+        this.frameskip = frameskip;
         startALE(rom);
 
         in = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -64,6 +69,7 @@ public class ALEDriver {
         ProcessBuilder pb = new ProcessBuilder(
                 ALE_FILE,
                 "-game_controller", "fifo",
+                "-frame_skip", Integer.toString(frameskip),
                 (new File(ROM_DIR, rom)).getPath())
                 .redirectError(new File(ALE_ERROR_FILE));
 
@@ -117,8 +123,7 @@ public class ALEDriver {
 
         // Now send back our preferences
         // Format: <wants-screen>,<wants-ram>,<frame-skip>,<wants-rldata>\n
-        out.printf("%d,%d,%d,%d\n", updateScreen? 1:0, updateRam? 1:0, frameskip,
-                updateRLData? 1:0);
+        out.printf("%d,%d,%d,%d\n", updateScreen? 1:0, updateRam? 1:0, 1, updateRLData? 1:0);
         out.flush();
 
         // Initial observe
@@ -127,10 +132,6 @@ public class ALEDriver {
 
     public int getFrameSkip() {
         return frameskip;
-    }
-
-    public void setFrameSkip(int frameskip) {
-        this.frameskip = frameskip;
     }
 
     /** Returns the screen matrix from ALE.
@@ -256,9 +257,14 @@ public class ALEDriver {
     public void readRLData(String line) {
         // Parse RL data
         // Format: <is-terminal>:<reward>\n
+        String[] tokens = line.split(",");
+
         // Parse the terminal bit
-        rlData.isTerminal = (Integer.parseInt(line.substring(0, 1)) == 1);
-        rlData.reward = Integer.parseInt(line.substring(2));
+        rlData.isTerminal = (Integer.parseInt(tokens[0]) == 1);
+        if (rlData.isTerminal) {
+            System.out.println("Hit Terminal!");
+        }
+        rlData.reward = Integer.parseInt(tokens[1]);
     }
 
     /** Reads the console RAM from a string
