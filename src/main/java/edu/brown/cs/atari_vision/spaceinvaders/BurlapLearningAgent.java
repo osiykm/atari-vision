@@ -3,7 +3,6 @@ package edu.brown.cs.atari_vision.spaceinvaders;
 import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.mdp.singleagent.SADomain;
 import burlap.visualizer.Visualizer;
-import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
 
 /**
  * Created by MelRod on 4/21/16.

@@ -1,8 +1,5 @@
 package edu.brown.cs.atari_vision.caffe.experiencereplay;
 
-import burlap.mdp.core.Action;
-import burlap.mdp.core.state.State;
-
 import java.io.Serializable;
 
 /**
@@ -20,12 +17,12 @@ public class FrameExperience implements Serializable {
     public boolean terminated;
 
     /** The state from which the action was taken */
-    public FrameHistoryState o;
+    public Frame o;
 
     /** The state to which the agent arrived at */
-    public FrameHistoryState op;
+    public Frame op;
 
-    public FrameExperience(FrameHistoryState o, int a, FrameHistoryState op, double r, boolean terminated) {
+    public FrameExperience(Frame o, int a, Frame op, double r, boolean terminated) {
         this.o = o;
         this.a = a;
         this.op = op;

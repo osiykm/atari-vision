@@ -25,7 +25,7 @@ import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.shell.visual.VisualExplorer;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
-import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
+import edu.brown.cs.atari_vision.caffe.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FixedSizeMemory;
 import edu.brown.cs.atari_vision.caffe.learners.DeepQLearner;
 import edu.brown.cs.atari_vision.caffe.policies.AnnealedEpsilonGreedy;

@@ -1,4 +1,4 @@
-package edu.brown.cs.atari_vision.ale.burlap.propositionalfunction;
+package edu.brown.cs.atari_vision.spaceinvaders.propositionalfunction;
 
 import burlap.mdp.core.oo.state.OOState;
 import burlap.mdp.core.oo.state.ObjectInstance;

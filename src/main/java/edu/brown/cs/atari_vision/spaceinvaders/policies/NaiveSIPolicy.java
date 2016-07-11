@@ -1,6 +1,5 @@
-package edu.brown.cs.atari_vision.ale.burlap.alepolicies;
+package edu.brown.cs.atari_vision.spaceinvaders.policies;
 
-import burlap.behavior.policy.support.ActionProb;
 import burlap.mdp.core.Action;
 import burlap.mdp.core.SimpleAction;
 import burlap.mdp.core.oo.propositional.GroundedProp;

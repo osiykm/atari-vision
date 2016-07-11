@@ -17,9 +17,6 @@
  */
 package edu.brown.cs.atari_vision.ale.io;
 
-import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
-
-import java.util.Arrays;
 import java.util.HashMap;
 
 /** A static container for Atari actions.
@@ -101,22 +98,5 @@ public class Actions {
             }
             actionsMap.put(actionNames[i], new Integer(v));
         }
-    }
-
-
-    /** Game specific action-subsets */
-    // Single Agent Action Set
-    public static ActionSet saActionSet() {
-        return new ActionSet(Arrays.copyOfRange(actionNames, 0, numPlayerActions));
-    }
-    // Pong Action Set
-    public static ActionSet pongActionSet() {
-        return new ActionSet(new String[]{"player_a_noop", "player_a_right", "player_a_left"});
-    }
-    // Space Invaders Action Set
-    public static ActionSet siActionSet() {
-        return new ActionSet(new String[]{
-                "player_a_noop", "player_a_right", "player_a_left",
-                "player_a_fire", "player_a_rightfire", "player_a_leftfire"});
     }
 }

@@ -65,12 +65,12 @@ public class ALEDriver {
         out = new PrintStream(new BufferedOutputStream(process.getOutputStream()));
     }
 
-    private void startALE(String rom) {
+    private void startALE(String romPath) {
         ProcessBuilder pb = new ProcessBuilder(
                 ALE_FILE,
                 "-game_controller", "fifo",
                 "-frame_skip", Integer.toString(frameskip),
-                (new File(ROM_DIR, rom)).getPath())
+                romPath)
                 .redirectError(new File(ALE_ERROR_FILE));
 
         try {

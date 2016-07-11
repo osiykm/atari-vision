@@ -3,19 +3,16 @@ package edu.brown.cs.atari_vision.caffe.training;
 import burlap.behavior.policy.Policy;
 import burlap.behavior.policy.RandomPolicy;
 import burlap.behavior.singleagent.Episode;
-import burlap.mdp.core.Action;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.environment.Environment;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
-import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
+import edu.brown.cs.atari_vision.caffe.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.learners.DeepQLearner;
 import edu.brown.cs.atari_vision.caffe.vfa.DQN;
 
 import static org.bytedeco.javacpp.caffe.*;
 
 import java.io.*;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

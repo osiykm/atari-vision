@@ -49,7 +49,7 @@
     </build>
 
     <properties>
-        <burlap.version>3.0.0-SNAPSHOT</burlap.version>
+        <burlap.version>3.0.0</burlap.version>
         <cuda.version>7.5</cuda.version>
 
         <nd4j.backend>nd4j-native</nd4j.backend>

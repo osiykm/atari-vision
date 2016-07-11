@@ -1,9 +1,8 @@
 package edu.brown.cs.atari_vision.caffe.policies;
 
 import burlap.behavior.policy.EpsilonGreedy;
-import burlap.behavior.valuefunction.QFunction;
 import burlap.behavior.valuefunction.QProvider;
-import burlap.mdp.core.Action;
+import burlap.mdp.core.action.Action;
 import burlap.mdp.core.state.State;
 
 /**

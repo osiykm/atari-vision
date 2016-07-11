@@ -19,6 +19,6 @@ public class ScreenConverter {
     }
 
     public BufferedImage convert(opencv_core.Mat screen) {
-        return  imageConverter.convert(frameConverter.convert(screen));
+        return imageConverter.convert(frameConverter.convert(screen));
     }
 }

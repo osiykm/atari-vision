@@ -9,10 +9,10 @@ import edu.brown.cs.atari_vision.ale.burlap.ALEEnvironment;
 import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
 import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
 import edu.brown.cs.atari_vision.ale.io.Actions;
+import edu.brown.cs.atari_vision.caffe.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameExperienceMemory;
 import edu.brown.cs.atari_vision.caffe.learners.DeepQLearner;
-import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameHistoryState;
-import edu.brown.cs.atari_vision.caffe.policies.AnnealedEpsilonGreedy;
+import edu.brown.cs.atari_vision.caffe.experiencereplay.Frame;
 import edu.brown.cs.atari_vision.caffe.preprocess.DQNPreProcessor;
 import edu.brown.cs.atari_vision.caffe.vfa.DQN;
 import org.bytedeco.javacpp.Loader;
@@ -54,14 +54,14 @@ public class DQNTrainer extends TrainingHelper {
 
     @Override
     public void prepareForTraining() {
-        ((ALEEnvironment<FrameHistoryState>)this.env).setStateGenerator(trainingMemory);
+        ((ALEEnvironment<Frame>)this.env).setStateGenerator(trainingMemory);
 
         vfa.stateConverter = trainingMemory;
     }
 
     @Override
     public void prepareForTesting() {
-        ((ALEEnvironment<FrameHistoryState>)this.env).setStateGenerator(testMemory);
+        ((ALEEnvironment<Frame>)this.env).setStateGenerator(testMemory);
 
         vfa.stateConverter = testMemory;
     }
@@ -70,13 +70,13 @@ public class DQNTrainer extends TrainingHelper {
 
         Loader.load(Caffe.class);
 
-        ActionSet actionSet = Actions.pongActionSet();
+        ActionSet actionSet = new ActionSet(ALEDomainGenerator.pongActionSet());
 
-        ALEDomainGenerator domGen = new ALEDomainGenerator(actionSet);
+        ALEDomainGenerator domGen = new ALEDomainGenerator(ALEDomainGenerator.pongActionSet());
         SADomain domain = domGen.generateDomain();
 
         FrameExperienceMemory trainingExperienceMemory = new FrameExperienceMemory(experienceMemoryLength, maxHistoryLength, new DQNPreProcessor(), actionSet);
-        ALEEnvironment env = new ALEEnvironment(domain, trainingExperienceMemory, ROM, frameSkip, GUI);
+        ALEEnvironment env = new ALEEnvironment(domain, ROM, frameSkip);
 
         FrameExperienceMemory testExperienceMemory = new FrameExperienceMemory(10000, maxHistoryLength, new DQNPreProcessor(), actionSet);
 

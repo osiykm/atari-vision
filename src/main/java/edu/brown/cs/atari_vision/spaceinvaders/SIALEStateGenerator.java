@@ -4,7 +4,7 @@ import burlap.mdp.core.Action;
 import burlap.mdp.core.oo.state.ObjectInstance;
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainConstants;
 import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
-import edu.brown.cs.atari_vision.ale.burlap.BlankALEState;
+import edu.brown.cs.atari_vision.ale.burlap.ALEState;
 import edu.brown.cs.atari_vision.spaceinvaders.cv.TargetedContourFinder;
 import edu.brown.cs.atari_vision.spaceinvaders.objects.AgentObject;
 import edu.brown.cs.atari_vision.spaceinvaders.objects.AlienObject;
@@ -19,19 +19,19 @@ import java.util.Map;
 /**
  * Created by maroderi on 6/22/16.
  */
-public class SIALEStateGenerator implements ALEStateGenerator<BlankALEState> {
+public class SIALEStateGenerator implements ALEStateGenerator<ALEState> {
 
     public static final int X_BOMB_STITCH_THRESHOLD = 1;
     public static final int Y_BOMB_STITCH_THRESHOLD = 5;
 
     @Override
-    public BlankALEState initialState(Mat screen) {
-        return new BlankALEState();
+    public ALEState initialState(Mat screen) {
+        return new ALEState();
     }
 
     @Override
-    public BlankALEState nextState(Mat screen, BlankALEState prevState, Action action, double reward, boolean terminated) {
-        BlankALEState s = new BlankALEState(screen);
+    public ALEState nextState(Mat screen, ALEState prevState, Action action, double reward, boolean terminated) {
+        ALEState s = new ALEState(screen);
 
         // Find sprites using TargetedContourFinder
         Map<String, List<Point>> sprites = TargetedContourFinder.getTCF().findSprites(screen);

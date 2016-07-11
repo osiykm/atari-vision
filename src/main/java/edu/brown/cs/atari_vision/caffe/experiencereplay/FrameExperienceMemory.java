@@ -1,34 +1,29 @@
 package edu.brown.cs.atari_vision.caffe.experiencereplay;
 
 import burlap.debugtools.RandomFactory;
-import burlap.mdp.core.Action;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
-import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
-import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
+import edu.brown.cs.atari_vision.ale.burlap.ALEState;
+import edu.brown.cs.atari_vision.caffe.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.preprocess.PreProcessor;
 import edu.brown.cs.atari_vision.caffe.vfa.NNStateConverter;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
 
 import java.io.*;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static org.bytedeco.javacpp.opencv_core.*;
-
 /**
  * Created by maroderi on 6/20/16.
  */
-public class FrameExperienceMemory implements ExperienceMemory, NNStateConverter<FrameHistoryState>, ALEStateGenerator<FrameHistoryState>, Serializable {
+public class FrameExperienceMemory implements ExperienceMemory, NNStateConverter, Serializable {
 
     public transient BytePointer frameHistory;
     public transient PreProcessor preProcessor;
     public transient ActionSet actionSet;
 
-    public long currentFrameIndex;
+    public Frame currentFrame;
     public int next = 0;
     public FrameExperience[] experiences;
     public int size = 0;
@@ -48,7 +43,7 @@ public class FrameExperienceMemory implements ExperienceMemory, NNStateConverter
         this.alwaysIncludeMostRecent = alwaysIncludeMostRecent;
         this.experiences = new FrameExperience[size];
 
-        this.currentFrameIndex = 0;
+        this.currentFrame = new Frame(0, 0);
         this.maxHistoryLength = maxHistoryLength;
 
         this.preProcessor = preProcessor;
@@ -62,57 +57,7 @@ public class FrameExperienceMemory implements ExperienceMemory, NNStateConverter
     }
 
     @Override
-    public FrameHistoryState initialState(Mat screen) {
-        return new FrameHistoryState(currentFrameIndex, 0);
-    }
-
-    @Override
-    public FrameHistoryState nextState(Mat screen, FrameHistoryState prevState, Action action, double reward, boolean terminated) {
-        if (prevState.index != currentFrameIndex) {
-            throw new IllegalStateException("You can only update the most recent state");
-        }
-
-        long outputSize = preProcessor.outputSize();
-        long frameHistoryDataSize = frameHistory.capacity();
-        long paddingSize = (maxHistoryLength - 1) * outputSize;
-
-        // Find new index
-        long newIndex = prevState.index + outputSize;
-        if (newIndex >= frameHistoryDataSize) {
-            // Copy the buffer to the start of the history
-            BytePointer frameHistoryCopy = new BytePointer(frameHistory);
-            frameHistory.position(0).limit(paddingSize).put(frameHistoryCopy.position(frameHistoryDataSize - paddingSize));
-            frameHistory.limit(frameHistory.capacity());
-
-            newIndex = paddingSize;
-        }
-
-        // Increment length if smaller than n
-        int newHistoryLength = prevState.historyLength >= maxHistoryLength ?
-                maxHistoryLength : prevState.historyLength + 1;
-
-        // Create new state
-        FrameHistoryState newState = new FrameHistoryState(newIndex, newHistoryLength);
-
-        // Process the new screen
-        BytePointer newData = preProcessor.convertScreenToData(screen);
-
-        // Place data in history
-        frameHistory.position(newIndex).put(newData.limit(outputSize));
-
-        // Update current frame index
-        currentFrameIndex = newIndex;
-
-        // Add experience
-        experiences[next] = new FrameExperience(prevState, actionSet.map(action.actionName()), newState, reward, terminated);
-        next = (next+1) % experiences.length;
-        size = Math.min(size+1, experiences.length);
-
-        return newState;
-    }
-
-    @Override
-    public void getStateInput(FrameHistoryState state, FloatPointer input) {
+    public void getStateInput(Frame state, FloatPointer input) {
         long frameSize = preProcessor.outputSize();
         long index = state.index;
         int historyLength = state.historyLength;
@@ -178,7 +123,7 @@ public class FrameExperienceMemory implements ExperienceMemory, NNStateConverter
 
             // load object
             FrameExperienceMemory experienceMemory = (FrameExperienceMemory) objIn.readObject();
-            this.currentFrameIndex = experienceMemory.currentFrameIndex;
+            this.currentFrame = experienceMemory.currentFrame;
             this.next = experienceMemory.next;
             this.size = experienceMemory.size;
             this.experiences = experienceMemory.experiences;
@@ -204,7 +149,43 @@ public class FrameExperienceMemory implements ExperienceMemory, NNStateConverter
 
     @Override
     public void addExperience(EnvironmentOutcome eo) {
-        // Do nothing since we add the experience earlier
+
+        ALEState newState = (ALEState) eo.op;
+
+        long outputSize = preProcessor.outputSize();
+        long frameHistoryDataSize = frameHistory.capacity();
+        long paddingSize = (maxHistoryLength - 1) * outputSize;
+
+        // Find new index
+        long newIndex = currentFrame.index + outputSize;
+        if (newIndex >= frameHistoryDataSize) {
+            // Copy the buffer to the start of the history
+            BytePointer frameHistoryCopy = new BytePointer(frameHistory);
+            frameHistory.position(0).limit(paddingSize).put(frameHistoryCopy.position(frameHistoryDataSize - paddingSize));
+            frameHistory.limit(frameHistory.capacity());
+
+            newIndex = paddingSize;
+        }
+
+        // Increment length if smaller than n
+        int newHistoryLength = currentFrame.historyLength >= maxHistoryLength ?
+                maxHistoryLength : currentFrame.historyLength + 1;
+
+        // Process the new screen
+        BytePointer newData = preProcessor.convertScreenToData(newState.getScreen());
+
+        // Place data in history
+        frameHistory.position(newIndex).put(newData.limit(outputSize));
+
+        // Create new frame
+        Frame newFrame = new Frame(newIndex, newHistoryLength);
+
+        // Add experience
+        experiences[next] = new FrameExperience(currentFrame, actionSet.map(eo.a.actionName()), newFrame, eo.r, eo.terminated);
+        next = (next+1) % experiences.length;
+        size = Math.min(size+1, experiences.length);
+
+        currentFrame = newFrame;
     }
 
     @Override
@@ -213,7 +194,7 @@ public class FrameExperienceMemory implements ExperienceMemory, NNStateConverter
 
         List<EnvironmentOutcome> sampleOutcomes = new ArrayList<>(samples.size());
         for (FrameExperience exp : samples) {
-            sampleOutcomes.add(new EnvironmentOutcome(exp.o, actionSet.getAction(exp.a), exp.op, exp.r, exp.terminated));
+            sampleOutcomes.add(new EnvironmentOutcome(exp.o, actionSet.get(exp.a), exp.op, exp.r, exp.terminated));
         }
 
         return sampleOutcomes;
@@ -266,6 +247,6 @@ public class FrameExperienceMemory implements ExperienceMemory, NNStateConverter
     public void resetMemory() {
         this.size = 0;
         this.next = 0;
-        this.currentFrameIndex = 0;
+        this.currentFrame = new Frame(0, 0);
     }
 }

@@ -1,30 +1,30 @@
 package edu.brown.cs.atari_vision.ale.burlap;
 
 import burlap.mdp.auxiliary.DomainGenerator;
-import burlap.mdp.core.SimpleAction;
+import burlap.mdp.core.action.ActionType;
+import burlap.mdp.core.action.UniversalActionType;
 import burlap.mdp.singleagent.SADomain;
-import burlap.mdp.singleagent.action.ActionType;
-import burlap.mdp.singleagent.oo.OOSADomain;
-import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
-import edu.brown.cs.atari_vision.ale.burlap.action.SimpleActionType;
 import edu.brown.cs.atari_vision.ale.io.Actions;
+
+import java.util.Arrays;
 
 /**
  * Created by MelRod on 3/18/16.
  */
 public class ALEDomainGenerator implements DomainGenerator {
 
-    ActionSet actionSet;
+    String[] actionNames;
 
     public ALEDomainGenerator() {
         super();
-        actionSet = Actions.saActionSet();
+
+        this.actionNames = saActionSet();
     }
 
-    public ALEDomainGenerator(ActionSet actionSet) {
+    public ALEDomainGenerator(String[] actionNames) {
         super();
 
-        this.actionSet = actionSet;
+        this.actionNames = actionNames;
     }
 
     @Override
@@ -32,10 +32,27 @@ public class ALEDomainGenerator implements DomainGenerator {
         SADomain domain = new SADomain();
 
         // add in NullActions for Domain
-        for (ActionType actionType : actionSet.actionTypeList()) {
-            domain.addActionType(actionType);
+        for (String actionName : actionNames) {
+            domain.addActionType(new UniversalActionType(new ALEAction(actionName)));
         }
 
         return domain;
+    }
+
+
+    /** Game specific action-subsets */
+    // Single Agent ALE Action Set
+    public static String[] saActionSet() {
+        return Arrays.copyOfRange(Actions.actionNames, 0, Actions.numPlayerActions);
+    }
+    // Pong Action Set
+    public static String[] pongActionSet() {
+        return new String[] {"player_a_noop", "player_a_right", "player_a_left"};
+    }
+    // Space Invaders Action Set
+    public static String[] siActionSet() {
+        return new String[] {
+                "player_a_noop", "player_a_right", "player_a_left",
+                "player_a_fire", "player_a_rightfire", "player_a_leftfire"};
     }
 }

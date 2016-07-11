@@ -3,30 +3,15 @@ package edu.brown.cs.atari_vision.caffe.vfa;
 import burlap.behavior.functionapproximation.ParametricFunction;
 import burlap.behavior.valuefunction.QProvider;
 import burlap.behavior.valuefunction.QValue;
-import burlap.mdp.core.Action;
-import burlap.mdp.core.SimpleAction;
+import burlap.mdp.core.action.Action;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
-import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
-import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;
-import edu.brown.cs.atari_vision.caffe.Debug;
-import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameExperienceMemory;
-import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameHistoryState;
+import edu.brown.cs.atari_vision.caffe.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.visualizers.PongVisualizer;
-import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FloatPointer;
-import org.bytedeco.javacpp.opencv_core;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
 
 import static org.bytedeco.javacpp.caffe.*;
-import static org.bytedeco.javacpp.opencv_core.CV_32F;
-import static org.bytedeco.javacpp.opencv_core.CV_8U;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +20,6 @@ import java.util.List;
  * Created by MelRod on 5/25/16.
  */
 public class DQN implements ParametricFunction.ParametricStateActionFunction, QProvider, Serializable {
-
-    static JFrame pongVisualizer = PongVisualizer.createPongVisualizer();
 
     /** The GPU device to use */
     public int gpuDevice = 0;
@@ -214,11 +197,11 @@ public class DQN implements ParametricFunction.ParametricStateActionFunction, QP
     }
 
     @Override
-    public double evaluate(State state, Action abstractGroundedAction) {
+    public double evaluate(State state, Action action) {
         FloatBlob output = qValuesForState(state);
 
-        int action = actionSet.map(abstractGroundedAction.actionName());
-        return output.data_at(0,action,0,0);
+        int a = actionSet.map(action.actionName());
+        return output.data_at(0,a,0,0);
     }
 
     @Override
@@ -229,7 +212,7 @@ public class DQN implements ParametricFunction.ParametricStateActionFunction, QP
 
         ArrayList<QValue> qValueList = new ArrayList<>(numActions);
         for (int a = 0; a < numActions; a++) {
-            QValue q = new QValue(state, new SimpleAction(actionSet.get(a)), qValues.data_at(0, a, 0, 0));
+            QValue q = new QValue(state, actionSet.get(a), qValues.data_at(0, a, 0, 0));
             qValueList.add(q);
         }
 

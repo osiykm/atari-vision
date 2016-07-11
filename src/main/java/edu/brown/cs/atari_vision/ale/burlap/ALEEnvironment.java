@@ -1,7 +1,7 @@
 package edu.brown.cs.atari_vision.ale.burlap;
 
-import burlap.mdp.core.Action;
 import burlap.mdp.core.Domain;
+import burlap.mdp.core.action.Action;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.environment.Environment;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
@@ -10,7 +10,6 @@ import edu.brown.cs.atari_vision.ale.io.ALEDriver;
 import edu.brown.cs.atari_vision.ale.io.Actions;
 import edu.brown.cs.atari_vision.ale.io.RLData;
 import edu.brown.cs.atari_vision.ale.movie.MovieGenerator;
-import edu.brown.cs.atari_vision.ale.screen.NTSCPalette;
 import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;
 import org.bytedeco.javacpp.opencv_core.*;
 
@@ -19,12 +18,10 @@ import java.io.IOException;
 /**
  * @author Melrose Roderick
  */
-public class ALEEnvironment<StateT extends State> implements Environment {
+public class ALEEnvironment implements Environment {
 
     MovieGenerator movieGenerator;
 
-    /** The UI used for displaying images and receiving actions */
-    private AgentGUI ui;
     /** The I/O object used to communicate with ALE */
     private ALEDriver io;
 
@@ -32,35 +29,20 @@ public class ALEEnvironment<StateT extends State> implements Environment {
 
     /** State data **/
     Domain domain;
-    protected ALEStateGenerator<StateT> stateGenerator;
-    protected StateT currentState;
+    protected ALEState currentState;
     protected double lastReward;
     protected boolean isTerminal;
 
-    /** Parameters */
-    protected boolean useGUI;
-    protected String rom;
-
-    public ALEEnvironment(Domain domain, ALEStateGenerator stateGenerator, String rom, boolean useGUI) {
-        this(domain, stateGenerator, rom, 1, useGUI);
+    public ALEEnvironment(Domain domain, String romPath) {
+        this(domain, romPath, 1);
     }
 
-    public ALEEnvironment(Domain domain, ALEStateGenerator stateGenerator, String rom, int frameSkip, boolean useGUI) {
-        this.rom = rom;
-        this.useGUI = useGUI;
-        if (this.useGUI) {
-            // Create the GUI
-            ui = new AgentGUI();
-        }
-
+    public ALEEnvironment(Domain domain, String romPath, int frameSkip) {
         // Create the relevant I/O objects
-        initIO(frameSkip);
+        initIO(romPath, frameSkip);
 
         screenConverter = new ScreenConverter();
 
-        // Set initial state
-        this.stateGenerator = stateGenerator;
-        this.currentState = this.stateGenerator.initialState(io.getScreen());
         this.domain = domain;
     }
 
@@ -68,7 +50,7 @@ public class ALEEnvironment<StateT extends State> implements Environment {
         movieGenerator = new MovieGenerator(movieOutputFile);
     }
 
-    private void recordScreen(Mat screen) {
+    protected void recordScreen(Mat screen) {
         // Save screen capture
         if (movieGenerator != null) {
             movieGenerator.record(screenConverter.convert(screen));
@@ -76,33 +58,28 @@ public class ALEEnvironment<StateT extends State> implements Environment {
     }
 
     @Override
-    public StateT currentObservation() {
+    public State currentObservation() {
         return currentState;
     }
 
     @Override
     public EnvironmentOutcome executeAction(Action a) {
+        return executeAction((ALEAction) a);
+    }
+
+    public EnvironmentOutcome executeAction(ALEAction a) {
         // save start state
-        StateT startState = currentState;
+        State startState = currentState;
 
         // perform action
-        int action = Actions.map(a.actionName());
-        boolean closed = io.act(action);
+        boolean closed = io.act(a.aleCode);
         if (closed) {
             // the FIFO stream was closed
-            // exit cleanly
-            if (useGUI) {
-                ui.die();
-            }
-            System.exit(0);
+            throw new RuntimeException("ALE FIFO stream closed");
         }
 
         // Obtain the screen matrix
         Mat screen = io.getScreen();
-        // Pass it on to UI
-        if (useGUI) {
-            ui.updateImage(screen);
-        }
 
         // Get RLData
         RLData rlData = io.getRLData();
@@ -110,7 +87,7 @@ public class ALEEnvironment<StateT extends State> implements Environment {
         // Update Environment State
         lastReward = rlData.reward;
         isTerminal = rlData.isTerminal;
-        currentState = stateGenerator.nextState(screen, currentState, a, lastReward, isTerminal);
+        currentState = new ALEState(screen);
 
         // Record Screen for movie
         recordScreen(screen);
@@ -135,28 +112,18 @@ public class ALEEnvironment<StateT extends State> implements Environment {
         isTerminal = false;
 
         // reset initialState
-        currentState = stateGenerator.initialState(io.getScreen());
-    }
-
-    public void setStateGenerator(ALEStateGenerator<StateT> stateGenerator) {
-        this.stateGenerator = stateGenerator;
-    }
-
-    public void die() {
-        if (useGUI) {
-            ui.die();
-        }
+        currentState = new ALEState(io.getScreen());
     }
 
     /** Initialize the I/O object.
      *
      */
-    protected void initIO(int frameSkip) {
+    protected void initIO(String romPath, int frameSkip) {
         io = null;
 
         try {
             // Initialize the pipes; use named pipes if requested
-            io = new ALEDriver(rom, frameSkip);
+            io = new ALEDriver(romPath, frameSkip);
 
             // Determine which information to request from ALE
             io.setUpdateScreen(true);
