@@ -1,7 +1,7 @@
 package edu.brown.cs.atari_vision.spaceinvaders.policies;
 
-import burlap.mdp.core.Action;
-import burlap.mdp.core.SimpleAction;
+import burlap.mdp.core.action.Action;
+import burlap.mdp.core.action.SimpleAction;
 import burlap.mdp.core.oo.propositional.GroundedProp;
 import burlap.mdp.core.oo.propositional.PropositionalFunction;
 import burlap.mdp.core.oo.state.OOState;
@@ -10,6 +10,7 @@ import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainConstants;
 import burlap.behavior.policy.Policy;
+import edu.brown.cs.atari_vision.spaceinvaders.SIDomainConstants;
 
 import java.util.List;
 
@@ -38,7 +39,7 @@ public class NaiveSIPolicy implements Policy {
         leftAction = new SimpleAction("player_a_left");
         leftFireAction = new SimpleAction("player_a_leftfire");
 
-        vertAlignPF = domain.propFunction(ALEDomainConstants.PFVertAlign);
+        vertAlignPF = domain.propFunction(SIDomainConstants.PFVertAlign);
     }
 
     @Override
@@ -46,12 +47,12 @@ public class NaiveSIPolicy implements Policy {
 
         OOState state = (OOState)s;
 
-        List <ObjectInstance> instances = state.objectsOfClass(ALEDomainConstants.CLASSAGENT);
+        List <ObjectInstance> instances = state.objectsOfClass(SIDomainConstants.CLASSAGENT);
 
         if (instances.size() > 0) {
             ObjectInstance agent = instances.get(0);
 
-            int x = (Integer)agent.get(ALEDomainConstants.XATTNAME);
+            int x = (Integer)agent.get(SIDomainConstants.XATTNAME);
 
             if (movingRight && x >= 115) {
                 movingRight = false;

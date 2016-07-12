@@ -1,8 +1,9 @@
 package edu.brown.cs.atari_vision.ale.burlap;
 
 import burlap.mdp.core.state.State;
-import org.bytedeco.javacpp.opencv_core.*;
+import org.bytedeco.javacpp.opencv_core.Mat;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -22,16 +23,18 @@ public class ALEState implements State {
 
     @Override
     public List<Object> variableKeys() {
-        return null;
+        return Collections.singletonList((Object) "screen");
     }
 
     @Override
     public Object get(Object variableKey) {
-        return null;
+        return screen;
     }
 
     @Override
     public State copy() {
-        return null;
+        Mat newScreen = new Mat(screen.rows(), screen.cols(), screen.type());
+        screen.copyTo(newScreen);
+        return new ALEState(newScreen);
     }
 }

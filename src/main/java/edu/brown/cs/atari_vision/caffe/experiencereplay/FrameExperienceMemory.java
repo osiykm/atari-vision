@@ -1,6 +1,7 @@
 package edu.brown.cs.atari_vision.caffe.experiencereplay;
 
 import burlap.debugtools.RandomFactory;
+import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
 import edu.brown.cs.atari_vision.ale.burlap.ALEState;
 import edu.brown.cs.atari_vision.caffe.action.ActionSet;
@@ -57,10 +58,12 @@ public class FrameExperienceMemory implements ExperienceMemory, NNStateConverter
     }
 
     @Override
-    public void getStateInput(Frame state, FloatPointer input) {
+    public void getStateInput(State state, FloatPointer input) {
+        Frame frame = (Frame) state;
+
         long frameSize = preProcessor.outputSize();
-        long index = state.index;
-        int historyLength = state.historyLength;
+        long index = frame.index;
+        int historyLength = frame.historyLength;
 
         long pos = input.position();
         input.limit(pos + maxHistoryLength * frameSize);

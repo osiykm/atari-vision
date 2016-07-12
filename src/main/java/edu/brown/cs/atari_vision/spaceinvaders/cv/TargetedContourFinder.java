@@ -1,6 +1,7 @@
 package edu.brown.cs.atari_vision.spaceinvaders.cv;
 
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainConstants;
+import edu.brown.cs.atari_vision.spaceinvaders.SIDomainConstants;
 
 import static org.bytedeco.javacpp.opencv_core.*;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
@@ -66,15 +67,15 @@ public class TargetedContourFinder {
 
         // Filter to select only aliens
         ArrayList<Point> aliens = findSpritePoints(screen, ALIEN_COLOR, 8, 100);
-        locations.put(ALEDomainConstants.CLASSALIEN, aliens);
+        locations.put(SIDomainConstants.CLASSALIEN, aliens);
 
         // Filter to select only player
         ArrayList<Point> player = findSpritePoints(screen, PLAYER_COLOR, 5, 50);
-        locations.put(ALEDomainConstants.CLASSAGENT, player);
+        locations.put(SIDomainConstants.CLASSAGENT, player);
 
         // Filter to select only bombs
         ArrayList<Point> bombs = findSpritePoints(screen, BOMB_COLOR, 0, 5);
-        locations.put(ALEDomainConstants.CLASS_BOMB_UNKNOWN, bombs);
+        locations.put(SIDomainConstants.CLASS_BOMB_UNKNOWN, bombs);
 
         return locations;
     }

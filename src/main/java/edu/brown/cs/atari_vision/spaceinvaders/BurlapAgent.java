@@ -1,31 +1,32 @@
 package edu.brown.cs.atari_vision.spaceinvaders;
 
 import burlap.behavior.policy.Policy;
-import burlap.mdp.core.Action;
+import burlap.mdp.core.action.Action;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.SADomain;
 import burlap.shell.visual.VisualExplorer;
 import burlap.visualizer.Visualizer;
 import edu.brown.cs.atari_vision.ale.burlap.ALEEnvironment;
-import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
 
 /**
  * Created by MelRod on 3/22/16.
  */
 public class BurlapAgent {
 
+    static final String alePath = "/home/maroderi/projects/Arcade-Learning-Environment/ale";
+
     Policy policy;
     SADomain domain;
     ALEEnvironment env;
     Visualizer vis;
 
-    public BurlapAgent(Policy policy, SADomain domain, ALEStateGenerator stateGenerator, Visualizer vis, String rom, boolean useGUI) {
+    public BurlapAgent(Policy policy, SADomain domain, Visualizer vis, String rom) {
 
         this.domain = domain;
         this.policy = policy;
         this.vis = vis;
 
-        env = new ALEEnvironment(domain, stateGenerator, rom, useGUI);
+        env = new ALEEnvironment(domain, alePath, rom);
     }
 
     public void run(int episodes) {
@@ -40,9 +41,6 @@ public class BurlapAgent {
 
             env.resetEnvironment();
         }
-
-        // Clean up the environment
-        env.die();
 
     }
 

@@ -6,9 +6,6 @@ import burlap.mdp.singleagent.SADomain;
 import burlap.mdp.singleagent.environment.Environment;
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainGenerator;
 import edu.brown.cs.atari_vision.ale.burlap.ALEEnvironment;
-import edu.brown.cs.atari_vision.ale.burlap.ALEStateGenerator;
-import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
-import edu.brown.cs.atari_vision.ale.io.Actions;
 import edu.brown.cs.atari_vision.caffe.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameExperienceMemory;
 import edu.brown.cs.atari_vision.caffe.learners.DeepQLearner;
@@ -25,6 +22,7 @@ import static org.bytedeco.javacpp.caffe.*;
 public class DQNTrainer extends TrainingHelper {
 
     static final String SOLVER_FILE = "dqn_solver.prototxt";
+    static final String alePath = "/home/maroderi/projects/Arcade-Learning-Environment/ale";
     static final String ROM = "pong.bin";
     static final boolean GUI = true;
 
@@ -54,15 +52,11 @@ public class DQNTrainer extends TrainingHelper {
 
     @Override
     public void prepareForTraining() {
-        ((ALEEnvironment<Frame>)this.env).setStateGenerator(trainingMemory);
-
         vfa.stateConverter = trainingMemory;
     }
 
     @Override
     public void prepareForTesting() {
-        ((ALEEnvironment<Frame>)this.env).setStateGenerator(testMemory);
-
         vfa.stateConverter = testMemory;
     }
 
@@ -76,7 +70,7 @@ public class DQNTrainer extends TrainingHelper {
         SADomain domain = domGen.generateDomain();
 
         FrameExperienceMemory trainingExperienceMemory = new FrameExperienceMemory(experienceMemoryLength, maxHistoryLength, new DQNPreProcessor(), actionSet);
-        ALEEnvironment env = new ALEEnvironment(domain, ROM, frameSkip);
+        ALEEnvironment env = new ALEEnvironment(domain, alePath, ROM, frameSkip);
 
         FrameExperienceMemory testExperienceMemory = new FrameExperienceMemory(10000, maxHistoryLength, new DQNPreProcessor(), actionSet);
 

@@ -2,9 +2,13 @@ package edu.brown.cs.atari_vision.caffe.action;
 
 
 import burlap.mdp.core.action.Action;
+import burlap.mdp.core.action.ActionType;
 import burlap.mdp.core.action.SimpleAction;
+import burlap.mdp.core.action.UniversalActionType;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -64,14 +68,14 @@ public class ActionSet {
 //        return actionList;
 //    }
 //
-//    public List<ActionType> actionTypeList() {
-//        List<ActionType> actionList = new ArrayList<>(actions.length);
-//
-//        for (int i = 0; i < actions.length; i++) {
-//            ActionType at = new SimpleActionType(actions[i], this);
-//            actionList.add(at);
-//        }
-//
-//        return actionList;
-//    }
+    public List<ActionType> actionTypeList() {
+        List<ActionType> actionList = new ArrayList<>(actions.length);
+
+        for (int i = 0; i < actions.length; i++) {
+            ActionType at = new UniversalActionType(actions[i]);
+            actionList.add(at);
+        }
+
+        return actionList;
+    }
 }

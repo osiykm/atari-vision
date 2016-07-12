@@ -2,6 +2,7 @@ package edu.brown.cs.atari_vision.spaceinvaders.objects;
 
 import burlap.mdp.core.state.State;
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainConstants;
+import edu.brown.cs.atari_vision.spaceinvaders.SIDomainConstants;
 
 /**
  * @author Melrose Roderick
@@ -14,7 +15,7 @@ public class AgentObject extends SIObject {
 
     @Override
     public String className() {
-        return ALEDomainConstants.CLASSAGENT;
+        return SIDomainConstants.CLASSAGENT;
     }
 
     @Override

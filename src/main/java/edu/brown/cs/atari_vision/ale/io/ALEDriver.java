@@ -1,15 +1,12 @@
 package edu.brown.cs.atari_vision.ale.io;
 
-import edu.brown.cs.atari_vision.ale.burlap.ALEDomainConstants;
 import edu.brown.cs.atari_vision.ale.screen.ColorPalette;
 import edu.brown.cs.atari_vision.ale.screen.NTSCPalette;
 import org.bytedeco.javacpp.BytePointer;
-import org.bytedeco.javacpp.Pointer;
-import org.bytedeco.javacpp.opencv_core.*;
+import org.bytedeco.javacpp.opencv_core.Mat;
 
 import java.awt.*;
 import java.io.*;
-import java.nio.ByteBuffer;
 
 import static org.bytedeco.javacpp.opencv_core.CV_8UC3;
 
@@ -18,8 +15,6 @@ import static org.bytedeco.javacpp.opencv_core.CV_8UC3;
  */
 public class ALEDriver {
 
-    static final String ALE_FILE = "./ale";
-    static final String ROM_DIR = "roms/";
     static final String ALE_ERROR_FILE = "ale_err.txt";
 
     protected Process process;
@@ -53,21 +48,21 @@ public class ALEDriver {
 
     protected boolean useRLE = true;
 
-    public ALEDriver(String rom) {
-        this(rom, 1);
+    public ALEDriver(String alePath, String rom) {
+        this(alePath, rom, 1);
     }
 
-    public ALEDriver(String rom, int frameskip) {
+    public ALEDriver(String alePath, String rom, int frameskip) {
         this.frameskip = frameskip;
-        startALE(rom);
+        startALE(alePath, rom);
 
         in = new BufferedReader(new InputStreamReader(process.getInputStream()));
         out = new PrintStream(new BufferedOutputStream(process.getOutputStream()));
     }
 
-    private void startALE(String romPath) {
+    private void startALE(String alePath, String romPath) {
         ProcessBuilder pb = new ProcessBuilder(
-                ALE_FILE,
+                alePath,
                 "-game_controller", "fifo",
                 "-frame_skip", Integer.toString(frameskip),
                 romPath)
@@ -107,6 +102,10 @@ public class ALEDriver {
         // Read in the width and height of the screen
         // Format: <width>-<height>\n
         String line = in.readLine();
+        if (line == null) {
+            throw new RuntimeException("Error starting ale. Check 'ale_err.txt' for more information");
+        }
+
         String[] tokens = line.split("-");
         int width = Integer.parseInt(tokens[0]);
         int height = Integer.parseInt(tokens[1]);
@@ -261,9 +260,6 @@ public class ALEDriver {
 
         // Parse the terminal bit
         rlData.isTerminal = (Integer.parseInt(tokens[0]) == 1);
-        if (rlData.isTerminal) {
-            System.out.println("Hit Terminal!");
-        }
         rlData.reward = Integer.parseInt(tokens[1]);
     }
 

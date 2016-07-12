@@ -118,16 +118,18 @@ public class NNGridWorld {
         helper.run();
     }
 
-    class NNGridStateConverter implements NNStateConverter<GridWorldState> {
+    class NNGridStateConverter implements NNStateConverter {
 
         @Override
-        public void getStateInput(GridWorldState state, FloatPointer input) {
+        public void getStateInput(State state, FloatPointer input) {
+            GridWorldState gwState = (GridWorldState) state;
+
             int width = gwdg.getWidth();
             int height = gwdg.getHeight();
 
             input.fill(0);
 
-            ObjectInstance agent = state.object(GridWorldDomain.CLASS_AGENT);
+            ObjectInstance agent = gwState.object(GridWorldDomain.CLASS_AGENT);
             int x = (Integer)agent.get(GridWorldDomain.VAR_X);
             int y = (Integer)agent.get(GridWorldDomain.VAR_Y);
 

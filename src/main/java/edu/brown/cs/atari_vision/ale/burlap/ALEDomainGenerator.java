@@ -1,7 +1,6 @@
 package edu.brown.cs.atari_vision.ale.burlap;
 
 import burlap.mdp.auxiliary.DomainGenerator;
-import burlap.mdp.core.action.ActionType;
 import burlap.mdp.core.action.UniversalActionType;
 import burlap.mdp.singleagent.SADomain;
 import edu.brown.cs.atari_vision.ale.io.Actions;

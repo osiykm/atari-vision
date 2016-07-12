@@ -4,6 +4,7 @@ import burlap.mdp.core.oo.state.OOState;
 import burlap.mdp.core.oo.state.ObjectInstance;
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainConstants;
 import burlap.mdp.core.oo.propositional.PropositionalFunction;
+import edu.brown.cs.atari_vision.spaceinvaders.SIDomainConstants;
 
 /**
  * Created by MelRod on 3/12/16.
@@ -24,8 +25,8 @@ public class PFVertAlign extends PropositionalFunction {
         ObjectInstance objectA = s.object(params[0]);
         ObjectInstance objectB = s.object(params[1]);
 
-        int xA = (Integer)objectA.get(ALEDomainConstants.XATTNAME);
-        int xB = (Integer)objectB.get(ALEDomainConstants.XATTNAME);
+        int xA = (Integer)objectA.get(SIDomainConstants.XATTNAME);
+        int xB = (Integer)objectB.get(SIDomainConstants.XATTNAME);
         if (width/2 >= Math.abs(xA - xB)) {
             return true;
         } else {

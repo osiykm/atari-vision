@@ -3,10 +3,11 @@ package edu.brown.cs.atari_vision.caffe;
 import burlap.behavior.policy.EpsilonGreedy;
 import burlap.behavior.policy.Policy;
 import burlap.mdp.singleagent.SADomain;
+import edu.brown.cs.atari_vision.ale.burlap.ALEAction;
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainGenerator;
 import edu.brown.cs.atari_vision.ale.burlap.ALEEnvironment;
-import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
 import edu.brown.cs.atari_vision.ale.io.Actions;
+import edu.brown.cs.atari_vision.caffe.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameExperienceMemory;
 import edu.brown.cs.atari_vision.caffe.learners.DeepQLearner;
 import edu.brown.cs.atari_vision.caffe.policies.AnnealedEpsilonGreedy;
@@ -24,6 +25,7 @@ import org.bytedeco.javacpp.caffe;
 public class RunTest {
 
     static final String SOLVER_FILE = "dqn_solver.prototxt";
+    static final String alePath = "/home/maroderi/projects/Arcade-Learning-Environment/ale";
     static final String ROM = "pong.bin";
     static final boolean GUI = true;
 
@@ -39,13 +41,14 @@ public class RunTest {
     public static void main(String[] args) {
         Loader.load(caffe.Caffe.class);
 
-        ActionSet actionSet = Actions.pongActionSet();
+        String[] actionNames = ALEDomainGenerator.pongActionSet();
+        ActionSet actionSet = new ActionSet(actionNames);
 
-        ALEDomainGenerator domGen = new ALEDomainGenerator(actionSet);
+        ALEDomainGenerator domGen = new ALEDomainGenerator(actionNames);
         SADomain domain = domGen.generateDomain();
 
         FrameExperienceMemory testExperienceMemory = new FrameExperienceMemory(maxHistoryLength, maxHistoryLength, new DQNPreProcessor(), actionSet);
-        ALEEnvironment env = new ALEEnvironment(domain, testExperienceMemory, ROM, frameSkip, GUI);
+        ALEEnvironment env = new ALEEnvironment(domain, alePath, ROM, frameSkip);
 
         DQN dqn = new DQN(SOLVER_FILE, actionSet, testExperienceMemory, gamma);
         dqn.loadWeightsFrom("_iter_49946067.caffemodel");

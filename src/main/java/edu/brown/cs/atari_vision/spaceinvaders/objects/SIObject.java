@@ -3,6 +3,7 @@ package edu.brown.cs.atari_vision.spaceinvaders.objects;
 import burlap.mdp.core.oo.state.ObjectInstance;
 import burlap.mdp.core.state.UnknownKeyException;
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainConstants;
+import edu.brown.cs.atari_vision.spaceinvaders.SIDomainConstants;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,8 +20,8 @@ public abstract class SIObject implements ObjectInstance {
     int agentCenteredY;
 
     private final static List<Object> keys = Arrays.<Object>asList(
-            ALEDomainConstants.XATTNAME, ALEDomainConstants.YATTNAME,
-            ALEDomainConstants.AGENT_CENT_XATTNAME, ALEDomainConstants.AGENT_CENT_YATTNAME);
+            SIDomainConstants.XATTNAME, SIDomainConstants.YATTNAME,
+            SIDomainConstants.AGENT_CENT_XATTNAME, SIDomainConstants.AGENT_CENT_YATTNAME);
 
     public SIObject(int x, int y, int agentCenteredX, int agentCenteredY) {
         this.x = x;
@@ -55,13 +56,13 @@ public abstract class SIObject implements ObjectInstance {
 
     @Override
     public Object get(Object variableKey) {
-        if (variableKey.equals(ALEDomainConstants.XATTNAME)) {
+        if (variableKey.equals(SIDomainConstants.XATTNAME)) {
             return x;
-        } else if (variableKey.equals(ALEDomainConstants.YATTNAME)) {
+        } else if (variableKey.equals(SIDomainConstants.YATTNAME)) {
             return y;
-        } else if (variableKey.equals(ALEDomainConstants.AGENT_CENT_XATTNAME)) {
+        } else if (variableKey.equals(SIDomainConstants.AGENT_CENT_XATTNAME)) {
             return agentCenteredX;
-        } else if (variableKey.equals(ALEDomainConstants.AGENT_CENT_YATTNAME)) {
+        } else if (variableKey.equals(SIDomainConstants.AGENT_CENT_YATTNAME)) {
             return agentCenteredY;
         } else {
             throw new UnknownKeyException(variableKey);

@@ -5,13 +5,12 @@ import burlap.mdp.core.action.Action;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.environment.Environment;
 import burlap.mdp.singleagent.environment.EnvironmentOutcome;
-import edu.brown.cs.atari_vision.ale.gui.AgentGUI;
 import edu.brown.cs.atari_vision.ale.io.ALEDriver;
 import edu.brown.cs.atari_vision.ale.io.Actions;
 import edu.brown.cs.atari_vision.ale.io.RLData;
 import edu.brown.cs.atari_vision.ale.movie.MovieGenerator;
 import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;
-import org.bytedeco.javacpp.opencv_core.*;
+import org.bytedeco.javacpp.opencv_core.Mat;
 
 import java.io.IOException;
 
@@ -33,13 +32,13 @@ public class ALEEnvironment implements Environment {
     protected double lastReward;
     protected boolean isTerminal;
 
-    public ALEEnvironment(Domain domain, String romPath) {
-        this(domain, romPath, 1);
+    public ALEEnvironment(Domain domain, String alePath, String romPath) {
+        this(domain, alePath, romPath, 1);
     }
 
-    public ALEEnvironment(Domain domain, String romPath, int frameSkip) {
+    public ALEEnvironment(Domain domain, String alePath, String romPath, int frameSkip) {
         // Create the relevant I/O objects
-        initIO(romPath, frameSkip);
+        initIO(alePath, romPath, frameSkip);
 
         screenConverter = new ScreenConverter();
 
@@ -118,12 +117,12 @@ public class ALEEnvironment implements Environment {
     /** Initialize the I/O object.
      *
      */
-    protected void initIO(String romPath, int frameSkip) {
+    protected void initIO(String alePath, String romPath, int frameSkip) {
         io = null;
 
         try {
             // Initialize the pipes; use named pipes if requested
-            io = new ALEDriver(romPath, frameSkip);
+            io = new ALEDriver(alePath, romPath, frameSkip);
 
             // Determine which information to request from ALE
             io.setUpdateScreen(true);

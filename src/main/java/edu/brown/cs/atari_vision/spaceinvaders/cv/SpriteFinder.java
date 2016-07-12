@@ -1,6 +1,7 @@
 package edu.brown.cs.atari_vision.spaceinvaders.cv;
 
 import edu.brown.cs.atari_vision.ale.burlap.ALEDomainConstants;
+import edu.brown.cs.atari_vision.spaceinvaders.SIDomainConstants;
 import org.bytedeco.javacpp.indexer.DoubleIndexer;
 
 import static org.bytedeco.javacpp.opencv_core.*;
@@ -31,16 +32,16 @@ public class SpriteFinder {
         this.sprites = new ArrayList<>();
 
         // player
-        Sprite player = new Sprite(ALEDomainConstants.CLASSAGENT, "../sprites/player.png");
+        Sprite player = new Sprite(SIDomainConstants.CLASSAGENT, "../sprites/player.png");
         sprites.add(player);
 
         // aliens
-        Sprite bottom = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/1_left.png", "../sprites/1_right.png");
-        Sprite second = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/2_left.png", "../sprites/2_right.png");
-        Sprite third = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/3_left.png", "../sprites/3_right.png");
-        Sprite fourth = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/4_left.png", "../sprites/4_right.png");
-        Sprite fifth = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/5_left.png", "../sprites/5_right.png");
-        Sprite top = new Sprite(ALEDomainConstants.CLASSALIEN, "../sprites/6_left.png", "../sprites/6_right.png");
+        Sprite bottom = new Sprite(SIDomainConstants.CLASSALIEN, "../sprites/1_left.png", "../sprites/1_right.png");
+        Sprite second = new Sprite(SIDomainConstants.CLASSALIEN, "../sprites/2_left.png", "../sprites/2_right.png");
+        Sprite third = new Sprite(SIDomainConstants.CLASSALIEN, "../sprites/3_left.png", "../sprites/3_right.png");
+        Sprite fourth = new Sprite(SIDomainConstants.CLASSALIEN, "../sprites/4_left.png", "../sprites/4_right.png");
+        Sprite fifth = new Sprite(SIDomainConstants.CLASSALIEN, "../sprites/5_left.png", "../sprites/5_right.png");
+        Sprite top = new Sprite(SIDomainConstants.CLASSALIEN, "../sprites/6_left.png", "../sprites/6_right.png");
         sprites.add(bottom);
         sprites.add(second);
         sprites.add(third);

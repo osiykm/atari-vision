@@ -11,8 +11,8 @@ public class BurlapLearningAgent extends BurlapAgent {
 
     LearningAgent learningAgent;
 
-    public BurlapLearningAgent(LearningAgent learningAgent, SADomain domain, ALEStateGenerator stateGenerator, Visualizer vis, String rom, boolean useGUI) {
-        super(null, domain, stateGenerator, vis, rom, useGUI);
+    public BurlapLearningAgent(LearningAgent learningAgent, SADomain domain, Visualizer vis, String rom) {
+        super(null, domain, vis, rom);
 
         this.learningAgent = learningAgent;
     }

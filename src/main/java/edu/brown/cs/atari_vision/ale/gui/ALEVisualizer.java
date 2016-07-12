@@ -2,7 +2,6 @@ package edu.brown.cs.atari_vision.ale.gui;
 
 import burlap.mdp.core.state.State;
 import burlap.visualizer.StatePainter;
-import burlap.visualizer.StateRenderLayer;
 import burlap.visualizer.Visualizer;
 import edu.brown.cs.atari_vision.ale.burlap.ALEState;
 import edu.brown.cs.atari_vision.ale.screen.ScreenConverter;

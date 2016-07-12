@@ -34,4 +34,9 @@ public class ALEAction implements Action {
     public Action copy() {
         return new ALEAction(aleCode, actionName);
     }
+
+    @Override
+    public String toString() {
+        return actionName;
+    }
 }
