@@ -1,9 +1,9 @@
 package edu.brown.cs.atari_vision.ale.burlap.action;
 
-import burlap.mdp.core.Action;
-import burlap.mdp.core.SimpleAction;
+import burlap.mdp.core.action.Action;
+import burlap.mdp.core.action.SimpleAction;
 import burlap.mdp.core.state.State;
-import burlap.mdp.singleagent.action.ActionType;
+import burlap.mdp.core.action.ActionType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,6 +61,7 @@ public class ActionSet {
 
         for (int i = 0; i < actions.length; i++) {
             ActionType at = new SimpleActionType(actions[i], this);
+
             actionList.add(at);
         }
 

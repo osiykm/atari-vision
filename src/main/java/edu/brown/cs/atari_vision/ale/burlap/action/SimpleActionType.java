@@ -1,9 +1,7 @@
 package edu.brown.cs.atari_vision.ale.burlap.action;
 
-import burlap.mdp.core.Action;
-import burlap.mdp.core.SimpleAction;
+import burlap.mdp.core.action.*;
 import burlap.mdp.core.state.State;
-import burlap.mdp.singleagent.action.ActionType;
 
 import java.util.List;
 

@@ -87,7 +87,7 @@
         <dependency>
             <groupId>edu.brown.cs.burlap</groupId>
             <artifactId>burlap</artifactId>
-            <version>${burlap.version}</version>
+            <version>3.0.0</version>
         </dependency>
 
         <dependency>

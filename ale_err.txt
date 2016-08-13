@@ -1,0 +1,15 @@
+A.L.E: Arcade Learning Environment (version 0.5.0)
+[Powered by Stella]
+Use -help for help screen.
+Warning: couldn't load settings file: ./ale.cfg
+Game console created:
+  ROM file:  roms/pong.bin
+  Cart Name: Video Olympics (1978) (Atari)
+  Cart MD5:  60e0ea3cbe0913d39803477945e9e5ec
+  Display Format:  AUTO-DETECT ==> NTSC
+  ROM Size:        2048
+  Bankswitch Type: AUTO-DETECT ==> 2K
+
+Running ROM file...
+Random seed is 0
+Game will be controlled through FIFO pipes.

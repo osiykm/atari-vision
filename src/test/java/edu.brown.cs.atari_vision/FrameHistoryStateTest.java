@@ -1,6 +1,6 @@
 package edu.brown.cs.atari_vision;
 
-import burlap.mdp.core.Action;
+import burlap.mdp.core.action.Action;
 import edu.brown.cs.atari_vision.ale.burlap.action.ActionSet;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameExperienceMemory;
 import edu.brown.cs.atari_vision.caffe.experiencereplay.FrameHistoryState;

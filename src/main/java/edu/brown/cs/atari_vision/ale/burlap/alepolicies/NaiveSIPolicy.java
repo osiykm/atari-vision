@@ -1,8 +1,7 @@
 package edu.brown.cs.atari_vision.ale.burlap.alepolicies;
 
 import burlap.behavior.policy.support.ActionProb;
-import burlap.mdp.core.Action;
-import burlap.mdp.core.SimpleAction;
+import burlap.mdp.core.action.*;
 import burlap.mdp.core.oo.propositional.GroundedProp;
 import burlap.mdp.core.oo.propositional.PropositionalFunction;
 import burlap.mdp.core.oo.state.OOState;
